@@ -104,6 +104,27 @@ export abstract class Shape {
     this.setGeometryAttribute(attribute, value);
   }
 
+  restoreAttribute(attribute: string, value: ShapeAttributeValue | undefined): void {
+    if (value !== undefined) {
+      this.setAttribute(attribute, value);
+      return;
+    }
+
+    switch (attribute) {
+      case "fill":
+        this.fillValue = undefined;
+        return;
+      case "stroke":
+        this.strokeValue = undefined;
+        return;
+      case "stroke-width":
+        this.strokeWidthValue = undefined;
+        return;
+      default:
+        throw new DomainError(`cannot clear attribute: ${attribute}`);
+    }
+  }
+
   [setShapeParent](parent: Shape | null): void {
     this.parentValue = parent;
   }

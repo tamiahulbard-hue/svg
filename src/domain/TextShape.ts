@@ -27,13 +27,17 @@ export class TextShape extends Shape {
   }
 
   protected moveSelf(dx: number, dy: number): void {
-    this.xValue += dx;
-    this.yValue += dy;
+    const x = TextShape.requireFinite(this.xValue + dx, "x");
+    const y = TextShape.requireFinite(this.yValue + dy, "y");
+    this.xValue = x;
+    this.yValue = y;
   }
 
   protected scaleSelf(factor: number): void {
-    this.xValue *= factor;
-    this.yValue *= factor;
+    const x = TextShape.requireFinite(this.xValue * factor, "x");
+    const y = TextShape.requireFinite(this.yValue * factor, "y");
+    this.xValue = x;
+    this.yValue = y;
   }
 
   protected setGeometryAttribute(attribute: string, value: ShapeAttributeValue): void {
@@ -45,13 +49,12 @@ export class TextShape extends Shape {
       return;
     }
 
-    const numericValue = TextShape.requireNumber(value, attribute);
     switch (attribute) {
       case "x":
-        this.xValue = TextShape.requireFinite(numericValue, attribute);
+        this.xValue = TextShape.requireFinite(TextShape.requireNumber(value, attribute), attribute);
         return;
       case "y":
-        this.yValue = TextShape.requireFinite(numericValue, attribute);
+        this.yValue = TextShape.requireFinite(TextShape.requireNumber(value, attribute), attribute);
         return;
       default:
         throw new DomainError(`unknown attribute: ${attribute}`);

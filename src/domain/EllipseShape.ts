@@ -22,31 +22,36 @@ export class EllipseShape extends Shape {
   }
 
   protected moveSelf(dx: number, dy: number): void {
-    this.cxValue += dx;
-    this.cyValue += dy;
+    const cx = EllipseShape.requireFinite(this.cxValue + dx, "cx");
+    const cy = EllipseShape.requireFinite(this.cyValue + dy, "cy");
+    this.cxValue = cx;
+    this.cyValue = cy;
   }
 
   protected scaleSelf(factor: number): void {
-    this.cxValue *= factor;
-    this.cyValue *= factor;
-    this.rxValue *= factor;
-    this.ryValue *= factor;
+    const cx = EllipseShape.requireFinite(this.cxValue * factor, "cx");
+    const cy = EllipseShape.requireFinite(this.cyValue * factor, "cy");
+    const rx = EllipseShape.requireNonNegative(this.rxValue * factor, "rx");
+    const ry = EllipseShape.requireNonNegative(this.ryValue * factor, "ry");
+    this.cxValue = cx;
+    this.cyValue = cy;
+    this.rxValue = rx;
+    this.ryValue = ry;
   }
 
   protected setGeometryAttribute(attribute: string, rawValue: ShapeAttributeValue): void {
-    const value = EllipseShape.requireNumber(rawValue, attribute);
     switch (attribute) {
       case "cx":
-        this.cxValue = EllipseShape.requireFinite(value, attribute);
+        this.cxValue = EllipseShape.requireFinite(EllipseShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "cy":
-        this.cyValue = EllipseShape.requireFinite(value, attribute);
+        this.cyValue = EllipseShape.requireFinite(EllipseShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "rx":
-        this.rxValue = EllipseShape.requireNonNegative(value, attribute);
+        this.rxValue = EllipseShape.requireNonNegative(EllipseShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "ry":
-        this.ryValue = EllipseShape.requireNonNegative(value, attribute);
+        this.ryValue = EllipseShape.requireNonNegative(EllipseShape.requireNumber(rawValue, attribute), attribute);
         return;
       default:
         throw new DomainError(`unknown attribute: ${attribute}`);

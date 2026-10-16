@@ -27,33 +27,40 @@ export class LineShape extends Shape {
   }
 
   protected moveSelf(dx: number, dy: number): void {
-    this.x1Value += dx;
-    this.y1Value += dy;
-    this.x2Value += dx;
-    this.y2Value += dy;
+    const x1 = LineShape.requireFinite(this.x1Value + dx, "x1");
+    const y1 = LineShape.requireFinite(this.y1Value + dy, "y1");
+    const x2 = LineShape.requireFinite(this.x2Value + dx, "x2");
+    const y2 = LineShape.requireFinite(this.y2Value + dy, "y2");
+    this.x1Value = x1;
+    this.y1Value = y1;
+    this.x2Value = x2;
+    this.y2Value = y2;
   }
 
   protected scaleSelf(factor: number): void {
-    this.x1Value *= factor;
-    this.y1Value *= factor;
-    this.x2Value *= factor;
-    this.y2Value *= factor;
+    const x1 = LineShape.requireFinite(this.x1Value * factor, "x1");
+    const y1 = LineShape.requireFinite(this.y1Value * factor, "y1");
+    const x2 = LineShape.requireFinite(this.x2Value * factor, "x2");
+    const y2 = LineShape.requireFinite(this.y2Value * factor, "y2");
+    this.x1Value = x1;
+    this.y1Value = y1;
+    this.x2Value = x2;
+    this.y2Value = y2;
   }
 
   protected setGeometryAttribute(attribute: string, rawValue: ShapeAttributeValue): void {
-    const value = LineShape.requireNumber(rawValue, attribute);
     switch (attribute) {
       case "x1":
-        this.x1Value = LineShape.requireFinite(value, attribute);
+        this.x1Value = LineShape.requireFinite(LineShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "y1":
-        this.y1Value = LineShape.requireFinite(value, attribute);
+        this.y1Value = LineShape.requireFinite(LineShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "x2":
-        this.x2Value = LineShape.requireFinite(value, attribute);
+        this.x2Value = LineShape.requireFinite(LineShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "y2":
-        this.y2Value = LineShape.requireFinite(value, attribute);
+        this.y2Value = LineShape.requireFinite(LineShape.requireNumber(rawValue, attribute), attribute);
         return;
       default:
         throw new DomainError(`unknown attribute: ${attribute}`);

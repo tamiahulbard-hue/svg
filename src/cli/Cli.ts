@@ -1,8 +1,12 @@
 import { createInterface } from "node:readline";
 import type { CommandExecutor } from "../application/CommandExecutor.js";
+import { CommandParser, CommandParseError } from "./CommandParser.js";
 
 export class Cli {
-  constructor(private readonly commandExecutor: CommandExecutor) {}
+  constructor(
+    private readonly commandExecutor: CommandExecutor,
+    private readonly commandParser = new CommandParser(),
+  ) {}
 
   run(): void {
     const terminal = process.stdin.isTTY === true;
@@ -25,7 +29,17 @@ export class Cli {
       }
 
       if (command.length > 0 && !command.startsWith("#")) {
-        console.log(this.commandExecutor.execute(command));
+        try {
+          const tokens = this.commandParser.parse(command);
+          if (tokens.length > 0) {
+            console.log(this.commandExecutor.execute(tokens));
+          }
+        } catch (error) {
+          if (!(error instanceof CommandParseError)) {
+            throw error;
+          }
+          console.log(`error: ${error.message}`);
+        }
       }
 
       readline.prompt();

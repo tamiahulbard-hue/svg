@@ -27,31 +27,36 @@ export class RectShape extends Shape {
   }
 
   protected moveSelf(dx: number, dy: number): void {
-    this.xValue += dx;
-    this.yValue += dy;
+    const x = RectShape.requireFinite(this.xValue + dx, "x");
+    const y = RectShape.requireFinite(this.yValue + dy, "y");
+    this.xValue = x;
+    this.yValue = y;
   }
 
   protected scaleSelf(factor: number): void {
-    this.xValue *= factor;
-    this.yValue *= factor;
-    this.widthValue *= factor;
-    this.heightValue *= factor;
+    const x = RectShape.requireFinite(this.xValue * factor, "x");
+    const y = RectShape.requireFinite(this.yValue * factor, "y");
+    const width = RectShape.requireNonNegative(this.widthValue * factor, "width");
+    const height = RectShape.requireNonNegative(this.heightValue * factor, "height");
+    this.xValue = x;
+    this.yValue = y;
+    this.widthValue = width;
+    this.heightValue = height;
   }
 
   protected setGeometryAttribute(attribute: string, rawValue: ShapeAttributeValue): void {
-    const value = RectShape.requireNumber(rawValue, attribute);
     switch (attribute) {
       case "x":
-        this.xValue = RectShape.requireFinite(value, attribute);
+        this.xValue = RectShape.requireFinite(RectShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "y":
-        this.yValue = RectShape.requireFinite(value, attribute);
+        this.yValue = RectShape.requireFinite(RectShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "width":
-        this.widthValue = RectShape.requireNonNegative(value, attribute);
+        this.widthValue = RectShape.requireNonNegative(RectShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "height":
-        this.heightValue = RectShape.requireNonNegative(value, attribute);
+        this.heightValue = RectShape.requireNonNegative(RectShape.requireNumber(rawValue, attribute), attribute);
         return;
       default:
         throw new DomainError(`unknown attribute: ${attribute}`);

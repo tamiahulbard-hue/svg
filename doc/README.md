@@ -87,22 +87,24 @@ TESTS ..> INFRA
 - 步骤一检查发现工程目录尚无实现代码或项目配置；本地 Git 尚无提交，已配置 `origin`，远程当前没有分支。因此本方案先明确模块边界和依赖方向，不假设现有代码结构；后续项目初始化时按实际依赖和工具链补充实现细节。
 - 步骤二建立了 TypeScript 工程配置、`src/main.ts` 组合根、`src/cli/Cli.ts` REPL，以及 `src/application/CommandExecutor.ts` 应用边界。当前由 `UnimplementedCommandExecutor` 明确提示命令尚未实现；后续命令实现时会替换它。REPL 支持 `exit` / `quit`，忽略空行与 `#` 开头的整行注释。
 - 步骤三在 `src/domain/` 增加抽象 `Shape`、`RectShape`、`CircleShape`、`EllipseShape`、`LineShape`、`TextShape`、`GroupShape`、`SvgDocument` 与 `DomainError`。文档以 id 查找图形并验证整棵子树的 id 唯一性；容器递归实现移动/缩放，文档提供添加、删除、重归属和顺序控制，同时拒绝无效父子循环。几何值要求有限数值，尺寸和半径不得为负，缩放因子必须为正。领域单元测试使用 Node.js 内置测试运行器。
-- 步骤四增加 `DocumentSession` 与文档命令入口，支持 `init`、`canvas` 和未初始化时报错；领域树操作提供删除、重归属、`ungroup` 原位提升以及同级 `front` / `back` 顺序调整。非法画布尺寸在修改前完成校验，不会覆盖当前文档。当前命令入口仍是临时分派器，步骤五/八会统一替换为解析器与正式命令注册表。
+- 步骤四增加 `DocumentSession` 与文档命令入口，支持 `init`、`canvas` 和未初始化时报错；领域树操作提供删除、重归属、`ungroup` 原位提升以及同级 `front` / `back` 顺序调整。非法画布尺寸在修改前完成校验，不会覆盖当前文档。步骤五已将文档命令统一纳入命令注册入口。
 - 步骤四验证中，`node --test tests` 在本 Windows/Node 环境把目录当成模块路径，失败；改为 Node 原生 glob（`node --test tests/*.test.mjs`）后稳定发现两组测试。该行为已记录并更新 npm test 脚本。
 - 步骤三的首次循环测试未建立实际的祖先/后代关系，未能验证预期拒绝行为；检查用例结构后将第二个容器挂到第一个容器下，再验证反向移动会被拒绝且结构保持不变。另根据同级重排测试明确索引表示最终位置，确保无效索引不改变顺序。
 - 步骤四 `npm test` 构建并运行 11 项测试，覆盖领域模型、结构操作及 `init` / `canvas` 错误场景，全部通过；`npm run typecheck` 通过。CLI 交互式输入冒烟检查确认 `init`、尺寸读取和修改正常。
+- 步骤五完成 `Command` 对象、`CommandFactory` 命令名注册入口、`ShapeFactory` 图形类型入口及带双引号参数的 `CommandParser`。编辑命令覆盖 create/delete/move/scale/set/group/ungroup/addto/front/back；Command 保存必要快照供下一步历史管理使用。发现嵌套容器操作可能在子孙变换中途溢出后留下部分状态，因此在编辑命令层保存并恢复子树快照，并为数值变换增加有限值校验；测试验证失败后状态完全还原。`box` 按阶段约定仍报未知图形类型。
+- 步骤五 `npm test` 共 19 项测试全部通过，`npm run typecheck` 通过；CLI 典型编辑会话冒烟检查通过。撤销/重做栈由步骤六补齐。
 - 后续发现的设计偏差、修正依据及其影响将在此按时间顺序补记。
 
 ## 一致性自查
 
-**状态：部分完成（步骤四）。** 已建立 `src/cli/`、`src/application/`、`src/domain/` 和 `src/` 组合根，符合当前阶段的模块规划；`tests/` 存放领域和应用测试。CLI 依赖应用层 `CommandExecutor` 接口，组合根负责实现的注入；领域模型不依赖 CLI、应用层或基础设施。基础设施模块尚未建立，SVG 文件端口与 CLI 完整解析器仍待后续步骤实现/复核。后续继续检查：
+**状态：部分完成（步骤五）。** 已建立 `src/cli/`、`src/application/`、`src/domain/` 和 `src/` 组合根，符合当前阶段的模块规划；`tests/` 存放领域、应用和解析测试。CLI 依赖应用层 `CommandExecutor` 接口，命令创建集中于应用层 `CommandFactory`，图形类型创建集中于领域层 `ShapeFactory`；组合根负责注入。领域模型不依赖 CLI、应用层或基础设施。基础设施模块尚未建立，SVG 文件端口与最终 CLI 显示命令仍待后续步骤实现/复核。后续继续检查：
 
 1. 实际模块与本方案目录是否一致；每项偏差在此记录原因及修订。
 2. 生产依赖是否遵守“依赖方向规则”；特别检查 CLI 是否绕过应用层修改模型、应用层是否直接依赖文件/XML 实现，以及领域层是否引入外部交互。
 
 ## 质量保证手段
 
-**状态：进行中。** 步骤二在 Node.js `v24.14.0` / npm `11.9.0` 环境验证通过：`npm install` 成功（审计报告 0 vulnerabilities），构建和类型检查通过。步骤三的 7 项领域测试全部通过；步骤四总计 11 项测试全部通过，含树结构与画布状态场景，构建、类型检查及 CLI 启动/交互冒烟检查均通过。命令、undo/redo、SVG IO 和完整 CLI 解析测试将在相应功能实现后补充。最终质量依据包括：
+**状态：进行中。** 步骤二在 Node.js `v24.14.0` / npm `11.9.0` 环境验证通过：`npm install` 成功（审计报告 0 vulnerabilities），构建和类型检查通过。步骤三 7 项领域测试、步骤四 11 项综合测试、步骤五 19 项综合测试均全部通过；涵盖命令参数解析、六种图形创建、编辑错误无副作用、容器递归、结构编辑及失败时的快照恢复。SVG IO、undo/redo、tree/show/help 和最终端到端回放将在相应步骤补充。最终质量依据包括：
 
 - 领域测试：id 唯一性、父子关系、同级顺序、图形几何属性及容器递归操作。
 - 命令测试：成功/失败状态、失败无副作用、每条编辑命令的 undo/redo、undo 后新编辑清空 redo、文档类操作形成历史屏障。

@@ -1,3 +1,3 @@
 export interface CommandExecutor {
-  execute(input: string): string;
+  execute(tokens: readonly string[]): string;
 }

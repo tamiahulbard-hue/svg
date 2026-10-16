@@ -20,27 +20,31 @@ export class CircleShape extends Shape {
   }
 
   protected moveSelf(dx: number, dy: number): void {
-    this.cxValue += dx;
-    this.cyValue += dy;
+    const cx = CircleShape.requireFinite(this.cxValue + dx, "cx");
+    const cy = CircleShape.requireFinite(this.cyValue + dy, "cy");
+    this.cxValue = cx;
+    this.cyValue = cy;
   }
 
   protected scaleSelf(factor: number): void {
-    this.cxValue *= factor;
-    this.cyValue *= factor;
-    this.radiusValue *= factor;
+    const cx = CircleShape.requireFinite(this.cxValue * factor, "cx");
+    const cy = CircleShape.requireFinite(this.cyValue * factor, "cy");
+    const radius = CircleShape.requireNonNegative(this.radiusValue * factor, "r");
+    this.cxValue = cx;
+    this.cyValue = cy;
+    this.radiusValue = radius;
   }
 
   protected setGeometryAttribute(attribute: string, rawValue: ShapeAttributeValue): void {
-    const value = CircleShape.requireNumber(rawValue, attribute);
     switch (attribute) {
       case "cx":
-        this.cxValue = CircleShape.requireFinite(value, attribute);
+        this.cxValue = CircleShape.requireFinite(CircleShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "cy":
-        this.cyValue = CircleShape.requireFinite(value, attribute);
+        this.cyValue = CircleShape.requireFinite(CircleShape.requireNumber(rawValue, attribute), attribute);
         return;
       case "r":
-        this.radiusValue = CircleShape.requireNonNegative(value, attribute);
+        this.radiusValue = CircleShape.requireNonNegative(CircleShape.requireNumber(rawValue, attribute), attribute);
         return;
       default:
         throw new DomainError(`unknown attribute: ${attribute}`);
