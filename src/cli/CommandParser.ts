@@ -15,7 +15,11 @@ export class CommandParser {
 
     for (const character of input) {
       if (escaped) {
-        current += character;
+        if (character === '"' || character === "\\") {
+          current += character;
+        } else {
+          current += `\\${character}`;
+        }
         escaped = false;
         continue;
       }

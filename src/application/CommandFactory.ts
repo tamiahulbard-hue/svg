@@ -2,6 +2,7 @@ import { DomainError } from "../domain/DomainError.js";
 import { DocumentSession } from "./DocumentSession.js";
 import type { Command } from "./Command.js";
 import { CommandHistory } from "./CommandHistory.js";
+import type { SvgFilePort } from "./SvgFilePort.js";
 import { CanvasCommand } from "./commands/CanvasCommand.js";
 import { CreateCommand } from "./commands/CreateCommand.js";
 import { DeleteCommand } from "./commands/DeleteCommand.js";
@@ -15,11 +16,14 @@ import { UngroupCommand } from "./commands/UngroupCommand.js";
 import { ZOrderCommand } from "./commands/ZOrderCommand.js";
 import { UndoCommand } from "./commands/UndoCommand.js";
 import { RedoCommand } from "./commands/RedoCommand.js";
+import { ReadCommand } from "./commands/ReadCommand.js";
+import { SaveCommand } from "./commands/SaveCommand.js";
 
 export class CommandFactory {
   constructor(
     private readonly session: DocumentSession,
     private readonly history = new CommandHistory(),
+    private readonly filePort?: SvgFilePort,
   ) {}
 
   create(tokens: readonly string[]): Command {
@@ -49,6 +53,16 @@ export class CommandFactory {
           arguments_[0] === undefined ? undefined : this.number(arguments_[0], "width"),
           arguments_[1] === undefined ? undefined : this.number(arguments_[1], "height"),
         );
+      case "read":
+        this.requireCount(name, arguments_, 1);
+        return new ReadCommand(
+          this.session,
+          this.filePort,
+          this.required(arguments_, 0, "file"),
+        );
+      case "save":
+        this.requireCount(name, arguments_, 0, 1);
+        return new SaveCommand(this.session, this.filePort, arguments_[0]);
       case "create":
         return this.createShape(arguments_);
       case "delete":

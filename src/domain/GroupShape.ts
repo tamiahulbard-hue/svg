@@ -3,6 +3,7 @@ import { Shape, setShapeParent, type ShapeAttributeValue } from "./Shape.js";
 
 export class GroupShape extends Shape {
   private readonly childrenValue: Shape[] = [];
+  private transformValue: string | undefined;
 
   constructor(id: string, style: { fill?: string; stroke?: string; strokeWidth?: number } = {}) {
     super(id, "g", style);
@@ -14,6 +15,29 @@ export class GroupShape extends Shape {
 
   get geometryAttributes(): Readonly<Record<string, number>> {
     return {};
+  }
+
+  get transform(): string | undefined {
+    return this.transformValue;
+  }
+
+  get additionalAttributes(): Readonly<Record<string, ShapeAttributeValue>> {
+    return this.transformValue === undefined ? {} : { transform: this.transformValue };
+  }
+
+  setTransform(transform: string | undefined): void {
+    this.transformValue = transform;
+  }
+
+  restoreAttribute(attribute: string, value: ShapeAttributeValue | undefined): void {
+    if (attribute === "transform") {
+      if (value !== undefined && typeof value !== "string") {
+        throw new DomainError("attribute transform must be a string");
+      }
+      this.transformValue = value;
+      return;
+    }
+    super.restoreAttribute(attribute, value);
   }
 
   addChild(child: Shape, index?: number): void {

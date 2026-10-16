@@ -27,6 +27,10 @@ test("parser preserves quoted whitespace and handles quoted escapes", () => {
     "text",
     'say "hi"',
   ]);
+  assert.deepEqual(tokens('read "C:\\Users\\Name\\diagram.svg"'), [
+    "read",
+    "C:\\Users\\Name\\diagram.svg",
+  ]);
   assert.throws(() => tokens('create text label 0 0 "unfinished'), /unterminated quoted argument/);
 });
 
