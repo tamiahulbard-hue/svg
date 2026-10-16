@@ -26,6 +26,10 @@ export class RectShape extends Shape {
     };
   }
 
+  get treeSummary(): string {
+    return `${this.identity} x=${this.xValue} y=${this.yValue} w=${this.widthValue} h=${this.heightValue}${this.styleSummary}`;
+  }
+
   protected moveSelf(dx: number, dy: number): void {
     const x = RectShape.requireFinite(this.xValue + dx, "x");
     const y = RectShape.requireFinite(this.yValue + dy, "y");

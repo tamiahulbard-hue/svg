@@ -62,6 +62,20 @@ export abstract class Shape {
   }
 
   abstract get geometryAttributes(): Readonly<Record<string, number>>;
+  abstract get treeSummary(): string;
+
+  get identity(): string {
+    return `${this.kind}#${this.id}`;
+  }
+
+  protected get styleSummary(): string {
+    const styles = [
+      this.fill === undefined ? undefined : `fill=${this.fill}`,
+      this.stroke === undefined ? undefined : `stroke=${this.stroke}`,
+      this.strokeWidth === undefined ? undefined : `stroke-width=${this.strokeWidth}`,
+    ].filter((value): value is string => value !== undefined);
+    return styles.length === 0 ? "" : ` ${styles.join(" ")}`;
+  }
 
   protected get additionalAttributes(): Readonly<Record<string, ShapeAttributeValue>> {
     return {};

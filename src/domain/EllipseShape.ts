@@ -21,6 +21,10 @@ export class EllipseShape extends Shape {
     return { cx: this.cxValue, cy: this.cyValue, rx: this.rxValue, ry: this.ryValue };
   }
 
+  get treeSummary(): string {
+    return `${this.identity} cx=${this.cxValue} cy=${this.cyValue} rx=${this.rxValue} ry=${this.ryValue}${this.styleSummary}`;
+  }
+
   protected moveSelf(dx: number, dy: number): void {
     const cx = EllipseShape.requireFinite(this.cxValue + dx, "cx");
     const cy = EllipseShape.requireFinite(this.cyValue + dy, "cy");

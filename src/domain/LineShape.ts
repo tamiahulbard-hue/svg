@@ -26,6 +26,10 @@ export class LineShape extends Shape {
     };
   }
 
+  get treeSummary(): string {
+    return `${this.identity} (${this.x1Value},${this.y1Value}) -> (${this.x2Value},${this.y2Value})${this.styleSummary}`;
+  }
+
   protected moveSelf(dx: number, dy: number): void {
     const x1 = LineShape.requireFinite(this.x1Value + dx, "x1");
     const y1 = LineShape.requireFinite(this.y1Value + dy, "y1");

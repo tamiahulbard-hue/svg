@@ -17,6 +17,10 @@ export class GroupShape extends Shape {
     return {};
   }
 
+  get treeSummary(): string {
+    return `${this.identity}${this.styleSummary}`;
+  }
+
   get transform(): string | undefined {
     return this.transformValue;
   }

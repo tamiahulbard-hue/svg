@@ -76,21 +76,21 @@ test("move, scale, set, delete, reparent, and z-order each undo as one edit", ()
   run(executor, "create g right");
   run(executor, "create rect r 10 20 30 40 in left");
 
-  run(executor, "move r 5 -3");
+  assert.equal(run(executor, "move r 5 -3"), "rect#r moved to (15,17)");
   assert.deepEqual(session.document.requireShape("r").geometryAttributes, {
     x: 15,
     y: 17,
     width: 30,
     height: 40,
   });
-  run(executor, "undo");
+  assert.equal(run(executor, "undo"), "rect#r moved back to (10,20)");
   assert.deepEqual(session.document.requireShape("r").geometryAttributes, {
     x: 10,
     y: 20,
     width: 30,
     height: 40,
   });
-  run(executor, "redo");
+  assert.equal(run(executor, "redo"), "rect#r moved to (15,17)");
   run(executor, "scale r 2");
   run(executor, "undo");
   assert.deepEqual(session.document.requireShape("r").geometryAttributes, {
@@ -114,7 +114,7 @@ test("move, scale, set, delete, reparent, and z-order each undo as one edit", ()
   assert.equal(session.document.requireShape("r").parent.id, "left");
 
   run(executor, "delete r");
-  run(executor, "undo");
+  assert.equal(run(executor, "undo"), "rect#r restored into g#left");
   assert.equal(session.document.requireShape("r").parent.id, "left");
   run(executor, "redo");
   assert.equal(session.document.findShape("r"), undefined);

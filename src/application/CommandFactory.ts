@@ -18,6 +18,9 @@ import { UndoCommand } from "./commands/UndoCommand.js";
 import { RedoCommand } from "./commands/RedoCommand.js";
 import { ReadCommand } from "./commands/ReadCommand.js";
 import { SaveCommand } from "./commands/SaveCommand.js";
+import { TreeCommand } from "./commands/TreeCommand.js";
+import { ShowCommand } from "./commands/ShowCommand.js";
+import { HelpCommand } from "./commands/HelpCommand.js";
 
 export class CommandFactory {
   constructor(
@@ -63,6 +66,15 @@ export class CommandFactory {
       case "save":
         this.requireCount(name, arguments_, 0, 1);
         return new SaveCommand(this.session, this.filePort, arguments_[0]);
+      case "tree":
+        this.requireCount(name, arguments_, 0, 1);
+        return new TreeCommand(this.session, arguments_[0]);
+      case "show":
+        this.requireCount(name, arguments_, 1);
+        return new ShowCommand(this.session, this.required(arguments_, 0, "id"));
+      case "help":
+        this.requireCount(name, arguments_, 0);
+        return new HelpCommand();
       case "create":
         return this.createShape(arguments_);
       case "delete":

@@ -8,6 +8,7 @@ export class SetCommand implements Command {
   readonly historyEffect = "edit" as const;
   private shape: Shape | undefined;
   private snapshot: ShapeSnapshot | undefined;
+  private previousValue: ShapeAttributeValue | undefined;
 
   constructor(
     private readonly session: DocumentSession,
@@ -19,6 +20,7 @@ export class SetCommand implements Command {
   execute(): string {
     const shape = this.session.document.requireShape(this.id);
     const snapshot = new ShapeSnapshot(shape);
+    this.previousValue = shape.attributes[this.attribute];
     shape.setAttribute(this.attribute, this.value);
     this.shape = shape;
     this.snapshot = snapshot;
@@ -31,6 +33,12 @@ export class SetCommand implements Command {
       throw new DomainError("cannot undo an attribute change that has not been executed");
     }
     this.snapshot.restore();
-    return `${this.shape.kind}#${this.shape.id} attribute restored`;
+    if (this.previousValue === undefined) {
+      return `${this.shape.kind}#${this.shape.id} updated: ${this.attribute} cleared`;
+    }
+    const formatted = typeof this.previousValue === "string"
+      ? JSON.stringify(this.previousValue)
+      : this.previousValue;
+    return `${this.shape.kind}#${this.shape.id} updated: ${this.attribute}=${formatted}`;
   }
 }

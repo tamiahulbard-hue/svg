@@ -22,6 +22,10 @@ export class TextShape extends Shape {
     return { x: this.xValue, y: this.yValue };
   }
 
+  get treeSummary(): string {
+    return `${this.identity} (${this.xValue},${this.yValue}) ${JSON.stringify(this.textValue)}${this.styleSummary}`;
+  }
+
   protected get additionalAttributes(): Readonly<Record<string, ShapeAttributeValue>> {
     return { text: this.textValue };
   }

@@ -27,6 +27,7 @@ export class DeleteCommand implements Command {
       throw new Error("cannot undo a deletion that has not been executed");
     }
     this.session.document.addShape(this.shape, this.parentId, this.index);
-    return `${this.shape.kind}#${this.shape.id} restored`;
+    const parentDescription = this.parentId === undefined ? "" : ` into g#${this.parentId}`;
+    return `${this.shape.kind}#${this.shape.id} restored${parentDescription}`;
   }
 }

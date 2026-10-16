@@ -19,6 +19,10 @@ export class CircleShape extends Shape {
     return { cx: this.cxValue, cy: this.cyValue, r: this.radiusValue };
   }
 
+  get treeSummary(): string {
+    return `${this.identity} cx=${this.cxValue} cy=${this.cyValue} r=${this.radiusValue}${this.styleSummary}`;
+  }
+
   protected moveSelf(dx: number, dy: number): void {
     const cx = CircleShape.requireFinite(this.cxValue + dx, "cx");
     const cy = CircleShape.requireFinite(this.cyValue + dy, "cy");
