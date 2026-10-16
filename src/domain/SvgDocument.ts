@@ -179,7 +179,10 @@ export class SvgDocument {
   }
 
   private requireContainer(id: string): GroupShape {
-    const shape = this.requireShape(id);
+    const shape = this.findShape(id);
+    if (shape === undefined) {
+      throw new DomainError(`no such container: ${id}`);
+    }
     if (!(shape instanceof GroupShape)) {
       throw new DomainError(`not a container: ${id}`);
     }

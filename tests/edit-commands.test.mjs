@@ -39,6 +39,10 @@ test("create supports six built-in shapes and optional container placement", () 
   const executor = new DocumentCommandExecutor(session);
   run(executor, "init 400 200");
   assert.equal(run(executor, "create g node"), "g#node created");
+  assert.equal(
+    run(executor, "create rect orphan 0 0 1 1 in missing"),
+    "error: no such container: missing",
+  );
   assert.equal(run(executor, "create rect r 1 2 30 40 red in node"), "rect#r created in g#node");
   assert.equal(run(executor, "create circle c 10 20 5 blue"), "circle#c created");
   assert.equal(run(executor, "create ellipse e 5 6 7 8"), "ellipse#e created");
@@ -141,6 +145,24 @@ test("composite ancestor selection and invalid destinations leave the tree uncha
   assert.equal(run(executor, "addto leaf leaf"), "error: not a container: leaf");
   assert.deepEqual(session.document.allShapes().map((shape) => shape.id), ["outer", "inner", "leaf"]);
   assert.equal(session.document.requireShape("leaf").parent.id, "inner");
+});
+
+test("group preserves original sibling order even when IDs are passed out of order", () => {
+  const session = new DocumentSession();
+  const executor = new DocumentCommandExecutor(session);
+  run(executor, "init");
+  for (const id of ["a", "b", "c", "d"]) {
+    run(executor, `create rect ${id} 0 0 1 1`);
+  }
+
+  assert.equal(run(executor, "group selected c a"), "g#selected created with 2 children");
+  assert.deepEqual(session.document.children.map((shape) => shape.id), ["selected", "b", "d"]);
+  assert.deepEqual(
+    session.document.requireShape("selected").children.map((shape) => shape.id),
+    ["a", "c"],
+  );
+  run(executor, "undo");
+  assert.deepEqual(session.document.children.map((shape) => shape.id), ["a", "b", "c", "d"]);
 });
 
 test("command objects expose undo for structural edits", () => {

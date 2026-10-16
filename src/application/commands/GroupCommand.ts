@@ -8,6 +8,7 @@ import type { Command } from "../Command.js";
 type SelectedShape = {
   shape: Shape;
   placement: ShapePlacement;
+  parent: GroupShape | null;
 };
 
 export class GroupCommand implements Command {
@@ -45,21 +46,25 @@ export class GroupCommand implements Command {
         throw new DomainError(`cannot group a container into its own descendant: ${candidate.id}`);
       }
     }
-    const selected = shapes.map((shape) => ({
-      shape,
-      placement: new ShapePlacement(document, shape),
-    }));
+    const selectedByParent = new Map<GroupShape | null, SelectedShape[]>();
+    for (const shape of shapes) {
+      const parent = shape.parent instanceof GroupShape ? shape.parent : null;
+      const selected = selectedByParent.get(parent) ?? [];
+      selected.push({ shape, placement: new ShapePlacement(document, shape), parent });
+      selectedByParent.set(parent, selected);
+    }
+    const selected = [...selectedByParent.values()].flatMap((members) =>
+      members.sort((left, right) => left.placement.index - right.placement.index),
+    );
 
     const first = selected[0];
     if (first === undefined) {
       throw new DomainError("group requires at least two shapes");
     }
     this.groupParentId = first.placement.parentId;
-    const sameParentBefore = selected.filter(
-      (candidate) =>
-        candidate.placement.parentId === first.placement.parentId &&
-        candidate.placement.index < first.placement.index,
-    ).length;
+    const sameParentBefore = selectedByParent.get(first.parent)?.filter(
+      (candidate) => candidate.placement.index < first.placement.index,
+    ).length ?? 0;
     this.groupIndex = first.placement.index - sameParentBefore;
 
     for (const candidate of [...selected].sort((a, b) => b.placement.index - a.placement.index)) {
