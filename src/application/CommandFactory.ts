@@ -1,6 +1,7 @@
 import { DomainError } from "../domain/DomainError.js";
 import { DocumentSession } from "./DocumentSession.js";
 import type { Command } from "./Command.js";
+import { CommandHistory } from "./CommandHistory.js";
 import { CanvasCommand } from "./commands/CanvasCommand.js";
 import { CreateCommand } from "./commands/CreateCommand.js";
 import { DeleteCommand } from "./commands/DeleteCommand.js";
@@ -12,9 +13,14 @@ import { ScaleCommand } from "./commands/ScaleCommand.js";
 import { SetCommand } from "./commands/SetCommand.js";
 import { UngroupCommand } from "./commands/UngroupCommand.js";
 import { ZOrderCommand } from "./commands/ZOrderCommand.js";
+import { UndoCommand } from "./commands/UndoCommand.js";
+import { RedoCommand } from "./commands/RedoCommand.js";
 
 export class CommandFactory {
-  constructor(private readonly session: DocumentSession) {}
+  constructor(
+    private readonly session: DocumentSession,
+    private readonly history = new CommandHistory(),
+  ) {}
 
   create(tokens: readonly string[]): Command {
     const [name, ...arguments_] = tokens;
@@ -23,6 +29,12 @@ export class CommandFactory {
     }
 
     switch (name) {
+      case "undo":
+        this.requireCount(name, arguments_, 0);
+        return new UndoCommand(this.history);
+      case "redo":
+        this.requireCount(name, arguments_, 0);
+        return new RedoCommand(this.history);
       case "init":
         this.requireCount(name, arguments_, 0, 2);
         return new InitCommand(
