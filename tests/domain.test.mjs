@@ -116,6 +116,47 @@ test("document reparents shapes while preserving order and rejects cycles atomic
   assert.deepEqual(second.children.map((shape) => shape.id), ["a"]);
 });
 
+test("front and back reorder only within the current sibling list", () => {
+  const document = new SvgDocument();
+  const group = new GroupShape("group");
+  document.addShape(new RectShape("root-a", 0, 0, 1, 1));
+  document.addShape(group);
+  document.addShape(new RectShape("root-b", 0, 0, 1, 1));
+  for (const id of ["a", "b", "c"]) {
+    document.addShape(new RectShape(id, 0, 0, 1, 1), "group");
+  }
+
+  document.moveToFront("a");
+  assert.deepEqual(group.children.map((shape) => shape.id), ["b", "c", "a"]);
+  document.moveToBack("a");
+  assert.deepEqual(group.children.map((shape) => shape.id), ["a", "b", "c"]);
+  document.moveToFront("root-a");
+  assert.deepEqual(document.children.map((shape) => shape.id), ["group", "root-b", "root-a"]);
+  assert.deepEqual(group.children.map((shape) => shape.id), ["a", "b", "c"]);
+});
+
+test("ungroup promotes children in place and refuses top-level containers", () => {
+  const document = new SvgDocument();
+  const outer = new GroupShape("outer");
+  const inner = new GroupShape("inner");
+  inner.addChild(new RectShape("a", 0, 0, 1, 1));
+  inner.addChild(new RectShape("b", 0, 0, 1, 1));
+  outer.addChild(new RectShape("before", 0, 0, 1, 1));
+  outer.addChild(inner);
+  outer.addChild(new RectShape("after", 0, 0, 1, 1));
+  document.addShape(outer);
+
+  assert.throws(
+    () => document.ungroupShape("outer"),
+    /cannot ungroup top-level container: outer/,
+  );
+  const promoted = document.ungroupShape("inner");
+  assert.deepEqual(promoted.map((shape) => shape.id), ["a", "b"]);
+  assert.deepEqual(outer.children.map((shape) => shape.id), ["before", "a", "b", "after"]);
+  assert.equal(document.findShape("inner"), undefined);
+  assert.throws(() => document.ungroupShape("a"), /not a container: a/);
+});
+
 test("removing and re-adding a subtree preserves its internal hierarchy", () => {
   const document = new SvgDocument();
   const group = new GroupShape("group");

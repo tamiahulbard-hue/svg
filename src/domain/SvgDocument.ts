@@ -108,6 +108,27 @@ export class SvgDocument {
     return shape;
   }
 
+  ungroupShape(id: string): Shape[] {
+    const group = this.requireShape(id);
+    if (!(group instanceof GroupShape)) {
+      throw new DomainError(`not a container: ${id}`);
+    }
+
+    const parent = group.parent;
+    if (!(parent instanceof GroupShape)) {
+      throw new DomainError(`cannot ungroup top-level container: ${id}`);
+    }
+
+    const originalIndex = parent.children.indexOf(group);
+    const children = [...group.children];
+    parent.removeChild(group);
+    for (const child of children) {
+      group.removeChild(child);
+    }
+    children.forEach((child, offset) => parent.addChild(child, originalIndex + offset));
+    return children;
+  }
+
   reparentShape(id: string, parentId?: string, index?: number): void {
     const shape = this.requireShape(id);
     const targetParent = parentId === undefined ? undefined : this.requireContainer(parentId);
@@ -142,6 +163,19 @@ export class SvgDocument {
     } else {
       targetParent.addChild(shape, insertionIndex);
     }
+  }
+
+  moveToFront(id: string): void {
+    const shape = this.requireShape(id);
+    const siblings = shape.parent instanceof GroupShape
+      ? shape.parent.children
+      : this.rootShapes;
+    this.reparentShape(id, shape.parent instanceof GroupShape ? shape.parent.id : undefined, siblings.length - 1);
+  }
+
+  moveToBack(id: string): void {
+    const shape = this.requireShape(id);
+    this.reparentShape(id, shape.parent instanceof GroupShape ? shape.parent.id : undefined, 0);
   }
 
   private requireContainer(id: string): GroupShape {

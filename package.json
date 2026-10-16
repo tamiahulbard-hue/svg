@@ -10,7 +10,7 @@
     "cli": "tsx src/main.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test tests/domain.test.mjs"
+    "test": "npm run build && node --test tests/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
