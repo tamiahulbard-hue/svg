@@ -1,7 +1,7 @@
 {
   "name": "svg-explorer-badge",
   "displayName": "SVG Explorer Badge",
-  "description": "Adds a [] badge to SVG files in the Explorer.",
+  "description": "Adds an Explorer badge and native Outline support for SVG files.",
   "version": "0.1.0",
   "publisher": "svg-lab",
   "engines": {
@@ -21,5 +21,8 @@
   "devDependencies": {
     "@types/vscode": "^1.85.0",
     "typescript": "^5.9.0"
+  },
+  "dependencies": {
+    "saxes": "^6.0.0"
   }
 }
