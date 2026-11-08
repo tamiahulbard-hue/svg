@@ -9,12 +9,12 @@ Dependencies, tests, and build output are excluded. The VS Code extension is lis
 
 | Area | Base LOC | Phase 2 LOC |
 |---|---:|---:|
-| Kernel | 2217 | 2299 |
-| Assembly | 8 | 448 |
-| Plugins | 0 | 796 |
-| **Total** | **2225** | **3543** |
+| Kernel | 2217 | 2320 |
+| Assembly | 8 | 440 |
+| Plugins | 0 | 800 |
+| **Total** | **2225** | **3560** |
 
-Aggregate cyclomatic complexity: 550 -> 863 (increment +313).
+Aggregate cyclomatic complexity: 550 -> 865 (increment +315).
 
 ## VS Code extension inventory (separate from CLI)
 
@@ -42,6 +42,7 @@ TypeScript source files: 5; non-blank LOC: 140.
 | `src/application/DirectoryAccess.ts` | Kernel | 11 | Use cases, registries, commands, and application ports |
 | `src/application/DocumentCommandExecutor.ts` | Kernel | 48 | Use cases, registries, commands, and application ports |
 | `src/application/DocumentSession.ts` | Kernel | 61 | Use cases, registries, commands, and application ports |
+| `src/application/PluginActivationContext.ts` | Kernel | 16 | Use cases, registries, commands, and application ports |
 | `src/application/ShapePlacement.ts` | Kernel | 23 | Use cases, registries, commands, and application ports |
 | `src/application/ShapeSnapshot.ts` | Kernel | 34 | Use cases, registries, commands, and application ports |
 | `src/application/SvgFilePort.ts` | Kernel | 10 | Use cases, registries, commands, and application ports |
@@ -51,7 +52,7 @@ TypeScript source files: 5; non-blank LOC: 140.
 | `src/application/commands/CreateCommand.ts` | Kernel | 30 | Use cases, registries, commands, and application ports |
 | `src/application/commands/DeleteCommand.ts` | Kernel | 29 | Use cases, registries, commands, and application ports |
 | `src/application/commands/GroupCommand.ts` | Kernel | 91 | Use cases, registries, commands, and application ports |
-| `src/application/commands/HelpCommand.ts` | Kernel | 43 | Use cases, registries, commands, and application ports |
+| `src/application/commands/HelpCommand.ts` | Kernel | 48 | Use cases, registries, commands, and application ports |
 | `src/application/commands/InitCommand.ts` | Kernel | 17 | Use cases, registries, commands, and application ports |
 | `src/application/commands/MoveCommand.ts` | Kernel | 50 | Use cases, registries, commands, and application ports |
 | `src/application/commands/ReadCommand.ts` | Kernel | 24 | Use cases, registries, commands, and application ports |
@@ -65,7 +66,7 @@ TypeScript source files: 5; non-blank LOC: 140.
 | `src/application/commands/UndoCommand.ts` | Kernel | 12 | Use cases, registries, commands, and application ports |
 | `src/application/commands/UngroupCommand.ts` | Kernel | 39 | Use cases, registries, commands, and application ports |
 | `src/application/commands/ZOrderCommand.ts` | Kernel | 34 | Use cases, registries, commands, and application ports |
-| `src/assembly/PluginContext.ts` | Assembly | 66 | Plugin context, loading, and code assembly |
+| `src/assembly/PluginContext.ts` | Assembly | 58 | Plugin context, loading, and code assembly |
 | `src/assembly/PluginLoader.ts` | Assembly | 320 | Plugin context, loading, and code assembly |
 | `src/assembly/codePlugins.ts` | Assembly | 10 | Plugin context, loading, and code assembly |
 | `src/cli/Cli.ts` | Kernel | 51 | REPL and command parsing |
@@ -85,7 +86,7 @@ TypeScript source files: 5; non-blank LOC: 140.
 | `src/infrastructure/SvgFileAdapter.ts` | Kernel | 35 | SVG and filesystem adapters |
 | `src/infrastructure/SvgXmlCodec.ts` | Kernel | 261 | SVG and filesystem adapters |
 | `src/main.ts` | Assembly | 52 | Process composition root |
-| `src/plugins/BuiltinCommandCatalog.ts` | Plugins | 205 | Plugin implementations and built-in providers |
+| `src/plugins/BuiltinCommandCatalog.ts` | Plugins | 209 | Plugin implementations and built-in providers |
 | `src/plugins/BuiltinCommandPlugin.ts` | Plugins | 46 | Plugin implementations and built-in providers |
 | `src/plugins/BuiltinShapeProvider.ts` | Plugins | 185 | Plugin implementations and built-in providers |
 | `src/plugins/box/BoxAttributeHandler.ts` | Plugins | 54 | Plugin implementations and built-in providers |
