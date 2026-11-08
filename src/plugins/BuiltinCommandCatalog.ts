@@ -113,7 +113,7 @@ export class BuiltinCommandCatalog {
       case "set":
         return this.setShapeAttribute(arguments_);
       case "group":
-        this.requireCount(name, arguments_, 3);
+        this.requireCount(name, arguments_, 3, Number.POSITIVE_INFINITY);
         return new GroupCommand(
           this.session,
           this.required(arguments_, 0, "new group id"),

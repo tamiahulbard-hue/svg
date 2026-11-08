@@ -164,6 +164,21 @@ test("group preserves original sibling order even when IDs are passed out of ord
   assert.deepEqual(session.document.children.map((shape) => shape.id), ["a", "b", "c", "d"]);
 });
 
+test("group accepts more than two children", () => {
+  const session = new DocumentSession();
+  const executor = createRuntime(session).executor;
+  run(executor, "init");
+  for (const id of ["a", "b", "c"]) {
+    run(executor, `create rect ${id} 0 0 1 1`);
+  }
+
+  assert.equal(run(executor, "group selected c a b"), "g#selected created with 3 children");
+  assert.deepEqual(
+    session.document.requireShape("selected").children.map((shape) => shape.id),
+    ["a", "b", "c"],
+  );
+});
+
 test("command objects expose undo for structural edits", () => {
   const session = new DocumentSession();
   const factory = createCommandFactory(session);
