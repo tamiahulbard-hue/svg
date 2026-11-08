@@ -184,7 +184,11 @@ ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；�
 
 临时插件测试覆盖 options、相对路径、禁用条目、缺少模块/default export、依赖导入或 activate 失败、清单不符、重复注册、事务回滚、清理订阅及错误后继续加载。集成测试使用相同命令输入和运行目录启动 A/B 两种 CLI，验证 stdout 逐字节一致，并检查 box 树标签、stats 输出及 dir；当前 `npm test` 73 项通过，`npm run typecheck` 通过。
 
-Phase 2 剩余工作包括 VSCode Extension Host 演示证据、最终报告，以及完成全部功能后的 `p2` tag；不得移动现有 `final` tag。
+### Metrics 生成
+
+`node scripts/metrics.mjs --base final --head HEAD` 从 Git 对象读取所选版本的追踪 TypeScript 文件，生成 `docs/metrics/report.md`。报告按 kernel、assembly、plugins 汇总非空源代码行数与圈复杂度，并单独列出 VS Code 扩展源文件；测试、依赖和构建产物不计入 CLI 指标。圈复杂度为脚本中定义的语法决策点汇总，报告明确列出计数规则。最终 Phase 2 代码提交完成后须重新运行脚本，再把最终报告纳入收尾提交。
+
+Phase 2 剩余工作包括框架扩展点清单与 ADR/模块依赖图、可复现的完整 CLI transcript、VSCode Extension Host 演示证据和最终报告；全部完成后才创建 `p2` tag，不得移动现有 `final` tag。
 
 ## VS Code 扩展实践
 
