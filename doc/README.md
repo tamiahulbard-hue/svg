@@ -266,6 +266,8 @@ HOST ..> PLUGINS : dynamic import
 | `TreeDecorator` — `src/application/TreeDecorator.ts` | 为单行树摘要追加一个标签 | `TreeCommand.renderShape` 调用 `TreeDecoratorRegistry.suffix` | `box-type` 追加 `(box)`；`modified-star` 比较保存快照并追加 `*` | 无 decorator 时后缀为空，Phase 1 tree 文本逐字节不变 | 重名拒绝；空标签忽略；非字符串或含换行标签报 `DomainError` |
 | `AttributeHandler` — `src/application/AttributeHandler.ts` | 为某种 Shape 上的属性提供领域修改行为 | `SetCommand.execute` 调用 `AttributeHandlerRegistry.resolve`，单次命令以 `ShapeSnapshot` 管理事务/undo/redo | box 插件的 `box-attributes` 处理 fill 和 label | 普通 Shape 继续走原有 `Shape.setAttribute` 白名单；没有 box 插件时不会获得 box 专属语义 | 多处理器命中拒绝；apply/反馈失败时恢复子树并报告处理器错误，执行失败不进入历史 |
 
+`help` 的命令插件列表来自 `CommandRegistry`；没有扩展 shape 时保留 Phase 1 的类型说明原文，注册额外类型后则列出新增 kind。
+
 #### `dir` 的 Adapter 角色
 
 `DirCommand` 是使用端；它只依赖 application 端口 `DirectoryAccess`（`currentWorkingDirectory`、`readDirectory`）。`NodeDirectoryAdapter` 是具体 Adapter：把 Node 文件系统的 `process.cwd()` / `readdirSync` / `statSync` 结果映射为 `DirectoryEntry` 与 `DirectoryReadResult`，并将失败收敛为失败联合类型。组合根注入该 Adapter；单元测试则注入同一端口的替身。这样命令逻辑不依赖 Node API，替身和真实临时目录测试可验证相同排序与错误语义。

@@ -3,7 +3,10 @@ import type { ExecutableCommand } from "../Command.js";
 export class HelpCommand implements ExecutableCommand {
   readonly historyEffect = "skip" as const;
 
-  constructor(private readonly additionalHelp = "") {}
+  constructor(
+    private readonly additionalHelp = "",
+    private readonly additionalShapeTypes: readonly string[] = [],
+  ) {}
 
   execute(): string {
     const lines = [
@@ -33,7 +36,9 @@ export class HelpCommand implements ExecutableCommand {
       "  undo | redo                           undo or redo an edit",
       "  help                                  display this help",
       "  exit | quit                           leave the editor",
-      "Built-in types: rect, circle, ellipse, line, text, g; plugins may add more types",
+      this.additionalShapeTypes.length === 0
+        ? "Built-in types: rect, circle, ellipse, line, text, g (box is not included in this phase)"
+        : `Built-in types: rect, circle, ellipse, line, text, g; additional types: ${this.additionalShapeTypes.join(", ")}`,
     ];
     if (this.additionalHelp.length > 0) {
       lines.push(this.additionalHelp);

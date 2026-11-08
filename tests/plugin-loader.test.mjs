@@ -186,6 +186,7 @@ test("code and file configuration produce identical CLI transcripts", () => {
   assert.match(codeTranscript, /\(total 2, containers 1\)/);
   assert.match(codeTranscript, /\bdir\b/);
   assert.match(codeTranscript, /\bstats\b/);
+  assert.match(codeTranscript, /additional types: box/);
 
   const invalidConfigDirectory = mkdtempSync(join(tmpdir(), "svg-invalid-plugin-config-"));
   try {

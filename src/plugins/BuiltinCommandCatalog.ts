@@ -27,6 +27,8 @@ import type { TreeDecoratorRegistry } from "../application/TreeDecoratorRegistry
 import type { AttributeHandlerRegistry } from "../application/AttributeHandlerRegistry.js";
 import type { DirectoryAccess } from "../application/DirectoryAccess.js";
 
+const PHASE_ONE_SHAPE_KINDS = new Set(["rect", "circle", "ellipse", "line", "text", "g"]);
+
 export class BuiltinCommandCatalog {
   constructor(
     private readonly session: DocumentSession,
@@ -84,7 +86,10 @@ export class BuiltinCommandCatalog {
         return new ShowCommand(this.session, this.required(arguments_, 0, "id"));
       case "help":
         this.requireCount(name, arguments_, 0);
-        return new HelpCommand(this.commandRegistry.additionalHelp);
+        return new HelpCommand(
+          this.commandRegistry.additionalHelp,
+          this.shapeProviders.kinds.filter((kind) => !PHASE_ONE_SHAPE_KINDS.has(kind)),
+        );
       case "create":
         return this.createShape(arguments_);
       case "delete":
