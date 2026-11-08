@@ -2,9 +2,9 @@ import { DomainError } from "../../domain/DomainError.js";
 import { GroupShape } from "../../domain/GroupShape.js";
 import type { Shape } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class TreeCommand implements Command {
+export class TreeCommand implements ExecutableCommand {
   readonly historyEffect = "skip" as const;
 
   constructor(

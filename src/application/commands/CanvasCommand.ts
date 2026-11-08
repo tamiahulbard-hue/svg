@@ -1,7 +1,7 @@
 import { DocumentSession } from "../DocumentSession.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class CanvasCommand implements Command {
+export class CanvasCommand implements ExecutableCommand {
   constructor(
     private readonly session: DocumentSession,
     private readonly width?: number,

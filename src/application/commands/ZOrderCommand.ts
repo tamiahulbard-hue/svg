@@ -1,9 +1,9 @@
 import { DomainError } from "../../domain/DomainError.js";
 import { DocumentSession } from "../DocumentSession.js";
 import { ShapePlacement } from "../ShapePlacement.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class ZOrderCommand implements Command {
+export class ZOrderCommand implements ExecutableCommand {
   readonly historyEffect = "edit" as const;
   private placement: ShapePlacement | undefined;
 

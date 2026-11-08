@@ -1,9 +1,9 @@
 import { GroupShape } from "../../domain/GroupShape.js";
 import type { Shape } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class DeleteCommand implements Command {
+export class DeleteCommand implements ExecutableCommand {
   readonly historyEffect = "edit" as const;
   private shape: Shape | undefined;
   private parentId: string | undefined;

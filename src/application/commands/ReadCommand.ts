@@ -1,9 +1,9 @@
 import { DomainError } from "../../domain/DomainError.js";
 import { DocumentSession } from "../DocumentSession.js";
 import type { SvgFilePort } from "../SvgFilePort.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class ReadCommand implements Command {
+export class ReadCommand implements ExecutableCommand {
   readonly historyEffect = "barrier" as const;
 
   constructor(

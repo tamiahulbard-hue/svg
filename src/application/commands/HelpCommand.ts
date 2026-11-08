@@ -1,10 +1,12 @@
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class HelpCommand implements Command {
+export class HelpCommand implements ExecutableCommand {
   readonly historyEffect = "skip" as const;
 
+  constructor(private readonly additionalHelp = "") {}
+
   execute(): string {
-    return [
+    const lines = [
       "Document:",
       "  init [w] [h]                          create a document (default 800x600)",
       "  read <file.svg>                       read an SVG document",
@@ -32,7 +34,11 @@ export class HelpCommand implements Command {
       "  help                                  display this help",
       "  exit | quit                           leave the editor",
       "Built-in types: rect, circle, ellipse, line, text, g (box is not included in this phase)",
-    ].join("\n");
+    ];
+    if (this.additionalHelp.length > 0) {
+      lines.push(this.additionalHelp);
+    }
+    return lines.join("\n");
   }
 
   undo(): string {

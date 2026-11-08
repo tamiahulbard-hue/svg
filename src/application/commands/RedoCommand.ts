@@ -1,7 +1,7 @@
 import { CommandHistory } from "../CommandHistory.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class RedoCommand implements Command {
+export class RedoCommand implements ExecutableCommand {
   readonly historyEffect = "skip" as const;
 
   constructor(private readonly history: CommandHistory) {}

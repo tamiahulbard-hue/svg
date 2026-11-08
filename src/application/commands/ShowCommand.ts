@@ -1,8 +1,8 @@
 import { DomainError } from "../../domain/DomainError.js";
 import { DocumentSession } from "../DocumentSession.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class ShowCommand implements Command {
+export class ShowCommand implements ExecutableCommand {
   readonly historyEffect = "skip" as const;
 
   constructor(private readonly session: DocumentSession, private readonly id: string) {}

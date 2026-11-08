@@ -1,7 +1,7 @@
 import { DocumentSession } from "../DocumentSession.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class InitCommand implements Command {
+export class InitCommand implements ExecutableCommand {
   readonly historyEffect = "barrier" as const;
 
   constructor(

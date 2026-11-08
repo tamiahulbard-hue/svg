@@ -2,9 +2,9 @@ import { DomainError } from "../../domain/DomainError.js";
 import type { Shape } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
 import { ShapeSnapshot } from "../ShapeSnapshot.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class ScaleCommand implements Command {
+export class ScaleCommand implements ExecutableCommand {
   readonly historyEffect = "edit" as const;
   private shape: Shape | undefined;
   private snapshot: ShapeSnapshot | undefined;

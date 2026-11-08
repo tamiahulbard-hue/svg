@@ -1,9 +1,9 @@
 import type { ShapeProviderRegistry } from "../../domain/ShapeProviderRegistry.js";
 import type { Shape } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class CreateCommand implements Command {
+export class CreateCommand implements ExecutableCommand {
   readonly historyEffect = "edit" as const;
   private readonly shape: Shape;
 

@@ -3,7 +3,7 @@ import { GroupShape } from "../../domain/GroupShape.js";
 import type { Shape } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
 import { ShapePlacement } from "../ShapePlacement.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
 type SelectedShape = {
   shape: Shape;
@@ -11,7 +11,7 @@ type SelectedShape = {
   parent: GroupShape | null;
 };
 
-export class GroupCommand implements Command {
+export class GroupCommand implements ExecutableCommand {
   readonly historyEffect = "edit" as const;
   private selected: SelectedShape[] = [];
   private group: GroupShape | undefined;

@@ -2,9 +2,9 @@ import { DomainError } from "../../domain/DomainError.js";
 import { GroupShape } from "../../domain/GroupShape.js";
 import { DocumentSession } from "../DocumentSession.js";
 import { ShapePlacement } from "../ShapePlacement.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class ReparentCommand implements Command {
+export class ReparentCommand implements ExecutableCommand {
   readonly historyEffect = "edit" as const;
   private placement: ShapePlacement | undefined;
 

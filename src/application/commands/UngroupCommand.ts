@@ -3,9 +3,9 @@ import { GroupShape } from "../../domain/GroupShape.js";
 import type { Shape } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
 import { ShapePlacement } from "../ShapePlacement.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class UngroupCommand implements Command {
+export class UngroupCommand implements ExecutableCommand {
   readonly historyEffect = "edit" as const;
   private group: GroupShape | undefined;
   private children: Shape[] = [];

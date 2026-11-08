@@ -1,12 +1,12 @@
 import { DomainError } from "../domain/DomainError.js";
-import type { Command } from "./Command.js";
+import type { ExecutableCommand } from "./Command.js";
 
 export class CommandHistory {
-  private readonly undoStack: Command[] = [];
-  private readonly redoStack: Command[] = [];
+  private readonly undoStack: ExecutableCommand[] = [];
+  private readonly redoStack: ExecutableCommand[] = [];
   private blockedByDocumentOperation = false;
 
-  execute(command: Command): string {
+  execute(command: ExecutableCommand): string {
     const result = command.execute();
 
     if (command.historyEffect === "barrier") {

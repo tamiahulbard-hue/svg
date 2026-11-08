@@ -1,7 +1,7 @@
 import { CommandHistory } from "../CommandHistory.js";
-import type { Command } from "../Command.js";
+import type { ExecutableCommand } from "../Command.js";
 
-export class UndoCommand implements Command {
+export class UndoCommand implements ExecutableCommand {
   readonly historyEffect = "skip" as const;
 
   constructor(private readonly history: CommandHistory) {}
