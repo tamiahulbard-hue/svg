@@ -5,6 +5,7 @@ import type { CommandHistory } from "./CommandHistory.js";
 import type { CommandRegistry } from "./CommandRegistry.js";
 import type { TreeDecoratorRegistry } from "./TreeDecoratorRegistry.js";
 import type { AttributeHandlerRegistry } from "./AttributeHandlerRegistry.js";
+import type { DirectoryAccess } from "./DirectoryAccess.js";
 
 export interface ExecutableCommand {
   readonly historyEffect: "edit" | "barrier" | "skip";
@@ -20,6 +21,7 @@ export interface CommandContext {
   readonly commandRegistry: CommandRegistry;
   readonly treeDecorators: TreeDecoratorRegistry;
   readonly attributeHandlers: AttributeHandlerRegistry;
+  readonly directoryAccess: DirectoryAccess;
 }
 
 export interface Command {

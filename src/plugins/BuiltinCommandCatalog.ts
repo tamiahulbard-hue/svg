@@ -25,6 +25,7 @@ import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 import type { CommandRegistry } from "../application/CommandRegistry.js";
 import type { TreeDecoratorRegistry } from "../application/TreeDecoratorRegistry.js";
 import type { AttributeHandlerRegistry } from "../application/AttributeHandlerRegistry.js";
+import type { DirectoryAccess } from "../application/DirectoryAccess.js";
 
 export class BuiltinCommandCatalog {
   constructor(
@@ -35,6 +36,7 @@ export class BuiltinCommandCatalog {
     private readonly commandRegistry: CommandRegistry,
     private readonly treeDecorators: TreeDecoratorRegistry,
     private readonly attributeHandlers: AttributeHandlerRegistry,
+    private readonly directoryAccess: DirectoryAccess,
   ) {}
 
   create(tokens: readonly string[]): ExecutableCommand {

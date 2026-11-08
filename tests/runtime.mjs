@@ -6,6 +6,7 @@ import { CommandRegistry } from "../dist/application/CommandRegistry.js";
 import { registerBuiltinCommands } from "../dist/plugins/BuiltinCommandPlugin.js";
 import { TreeDecoratorRegistry } from "../dist/application/TreeDecoratorRegistry.js";
 import { AttributeHandlerRegistry } from "../dist/application/AttributeHandlerRegistry.js";
+import { NodeDirectoryAdapter } from "../dist/infrastructure/NodeDirectoryAdapter.js";
 import { ShapeProviderRegistry } from "../dist/domain/ShapeProviderRegistry.js";
 import { SvgFileAdapter } from "../dist/infrastructure/SvgFileAdapter.js";
 import { SvgXmlCodec } from "../dist/infrastructure/SvgXmlCodec.js";
@@ -17,6 +18,7 @@ export function createRuntime(
   additionalCommands = [],
   additionalTreeDecorators = [],
   additionalAttributeHandlers = [],
+  directoryAccess = new NodeDirectoryAdapter(),
 ) {
   const shapeProviders = createDefaultShapeProviderRegistry();
   const adapter = filePort ?? new SvgFileAdapter(new SvgXmlCodec(shapeProviders));
@@ -40,6 +42,7 @@ export function createRuntime(
     commandRegistry,
     treeDecorators,
     attributeHandlers,
+    directoryAccess,
   );
   return {
     session,
@@ -48,6 +51,7 @@ export function createRuntime(
     commandRegistry,
     treeDecorators,
     attributeHandlers,
+    directoryAccess,
     executor,
   };
 }
@@ -62,6 +66,7 @@ export function createCommandFactory(session) {
   const commandRegistry = new CommandRegistry();
   const treeDecorators = new TreeDecoratorRegistry();
   const attributeHandlers = new AttributeHandlerRegistry();
+  const directoryAccess = new NodeDirectoryAdapter();
   registerBuiltinCommands(commandRegistry);
   return new CommandFactory(
     {
@@ -72,6 +77,7 @@ export function createCommandFactory(session) {
       commandRegistry,
       treeDecorators,
       attributeHandlers,
+      directoryAccess,
     },
   );
 }

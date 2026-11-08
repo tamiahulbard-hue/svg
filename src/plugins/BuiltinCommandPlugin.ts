@@ -38,6 +38,7 @@ class BuiltinCommand implements Command {
       context.commandRegistry,
       context.treeDecorators,
       context.attributeHandlers,
+      context.directoryAccess,
     );
     return catalog.create([this.name, ...arguments_]);
   }
