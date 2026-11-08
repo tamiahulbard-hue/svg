@@ -140,6 +140,8 @@ SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接
 
 `BoxTypeDecorator` 为 kind `box` 的容器追加 `(box)`，只匹配图形类型，不访问 dirty 状态。默认组合根注册它；与其他标签组合时采用 TreeDecorator 注册顺序。
 
+`ModifiedStarDecorator` 以内容与最近一次成功 `save` / `read` 快照的差异判定 dirty；未保存的新文档中每个形状行立即标 `*`，undo 回到保存点时星号消失。快照封装在装饰器实例中，由 `DocumentSession` 生命周期事件刷新，不依赖外部文件变化。属性变化只标记对应形状，不向祖先传播；子项新增/删除/重排会使其直接父容器行变脏。画布尺寸变化标记现有根图形行；由于扩展点只装饰 Shape，空画布的 `svg` 标题行不添加标签。标签拼接遵循注册顺序，故 `(box) *`。
+
 ### Command 注册
 
 `src/application/Command.ts` 中的 `Command` 是命令定义扩展点；实现提供名称、help 文案和参数到可执行命令的创建方法。`CommandRegistry` 统一负责名称注册、重复名拒绝、分发及插件 help 列表。`CommandFactory.create` 只解析名称并委托注册表。Phase 1 命令作为内置 command 插件由 `src/plugins/BuiltinCommandPlugin.ts` 注册，原参数语义保留在插件目录下的 `BuiltinCommandCatalog`；主组合根显式装配它们。可选 command 插件可独立注册，未注册名称仍返回 unknown command。

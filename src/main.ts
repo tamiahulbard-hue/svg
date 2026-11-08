@@ -14,6 +14,7 @@ import { NodeDirectoryAdapter } from "./infrastructure/NodeDirectoryAdapter.js";
 import { BoxShapeProvider } from "./plugins/box/BoxShapeProvider.js";
 import { BoxAttributeHandler } from "./plugins/box/BoxAttributeHandler.js";
 import { BoxTypeDecorator } from "./plugins/box/BoxTypeDecorator.js";
+import { ModifiedStarDecorator } from "./plugins/box/ModifiedStarDecorator.js";
 
 const session = new DocumentSession();
 const shapeProviders = createDefaultShapeProviderRegistry();
@@ -25,6 +26,7 @@ commandRegistry.register(new StatsCommandPlugin());
 commandRegistry.register(new DirCommandPlugin());
 const treeDecorators = new TreeDecoratorRegistry();
 treeDecorators.register(new BoxTypeDecorator());
+treeDecorators.register(new ModifiedStarDecorator(session));
 const attributeHandlers = new AttributeHandlerRegistry();
 attributeHandlers.register(new BoxAttributeHandler());
 const directoryAccess = new NodeDirectoryAdapter();
