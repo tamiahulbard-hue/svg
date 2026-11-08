@@ -28,6 +28,14 @@ Run `npm test --prefix vscode-extension`. The tests cover file decoration
 classification and the outline parser's nesting, source ranges, missing ids,
 updates, comments, and malformed XML.
 
+## Screenshots
+
+These screenshots were captured from the running Extension Development Host:
+
+![Explorer SVG badge, with a regular text file shown without a badge](../docs/images/vscode-svg-badge.png)
+
+![Nested SVG Outline with rect#start selected at its source location](../docs/images/vscode-svg-outline.png)
+
 ## Architecture notes
 
 VS Code owns the workbench, Explorer, document lifecycle, and Outline view. On

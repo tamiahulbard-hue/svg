@@ -310,4 +310,4 @@ HOST ..> PLUGINS : dynamic import
 
 VS Code 负责工作台 UI、Explorer/Outline 生命周期以及何时调用提供器；扩展通过 VS Code API 注册能力并返回展示数据。Explorer 文件标记属于“装饰器式”的附加呈现，但不等同经典 GoF Decorator：扩展没有包装并实现与被包装对象相同的文件接口，也不转发原对象操作。它更接近 Adapter：把 VS Code 的 URI、文件类型和 SVG 元素树转换成 `FileDecoration` 与 `DocumentSymbol`。更完整的职责与模式比较及复用评估见 `vscode-extension/README.md`。
 
-扩展示例为 `vscode-extension/examples/outline-demo.svg`；`npm test --prefix vscode-extension` 覆盖扩展名判定、目录排除、嵌套/无 id 节点、源代码范围、编辑后重新解析及不完整 XML。由于当前会话以无人值守方式运行，无法操作 Extension Development Host 或捕获真实 VS Code 窗口；要求的 Explorer 标记与 Outline 定位截图仍待在 VS Code 中手动运行 F5 后补入 `docs/images/`。不得以合成图或测试输出冒充 UI 截图。
+扩展示例为 `vscode-extension/examples/outline-demo.svg`；`npm test --prefix vscode-extension` 覆盖扩展名判定、目录排除、嵌套/无 id 节点、源代码范围、编辑后重新解析及不完整 XML。已在 Extension Development Host 中运行验证，并将真实 UI 截图提交到 `docs/images/vscode-svg-badge.png` 与 `docs/images/vscode-svg-outline.png`；前者展示 SVG 文件有 `[]` 标记而普通文本文件没有，后者展示嵌套大纲及 `rect#start` 的源码定位。
