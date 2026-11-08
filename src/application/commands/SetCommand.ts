@@ -3,6 +3,7 @@ import type { Shape, ShapeAttributeValue } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
 import { ShapeSnapshot } from "../ShapeSnapshot.js";
 import type { ExecutableCommand } from "../Command.js";
+import type { AttributeHandlerRegistry } from "../AttributeHandlerRegistry.js";
 
 export class SetCommand implements ExecutableCommand {
   readonly historyEffect = "edit" as const;
@@ -15,13 +16,34 @@ export class SetCommand implements ExecutableCommand {
     private readonly id: string,
     private readonly attribute: string,
     private readonly value: ShapeAttributeValue,
+    private readonly handlers: AttributeHandlerRegistry,
   ) {}
 
   execute(): string {
     const shape = this.session.document.requireShape(this.id);
     const snapshot = new ShapeSnapshot(shape);
-    this.previousValue = shape.attributes[this.attribute];
-    shape.setAttribute(this.attribute, this.value);
+    const previousValue = shape.attributes[this.attribute];
+    const handler = this.handlers.resolve(shape, this.attribute);
+    try {
+      this.previousValue = handler === undefined
+        ? previousValue
+        : handler.apply(shape, this.attribute, this.value) ?? previousValue;
+      if (handler === undefined) {
+        shape.setAttribute(this.attribute, this.value);
+      }
+    } catch (error) {
+      try {
+        snapshot.restore();
+      } catch (restoreError) {
+        throw new DomainError(
+          `attribute update failed and rollback failed: ${this.reason(error)}; ${this.reason(restoreError)}`,
+        );
+      }
+      if (handler !== undefined) {
+        throw new DomainError(`attribute handler ${handler.name} failed: ${this.reason(error)}`);
+      }
+      throw error;
+    }
     this.shape = shape;
     this.snapshot = snapshot;
     const formatted = typeof this.value === "string" ? `"${this.value}"` : this.value;
@@ -40,5 +62,9 @@ export class SetCommand implements ExecutableCommand {
       ? JSON.stringify(this.previousValue)
       : this.previousValue;
     return `${this.shape.kind}#${this.shape.id} updated: ${this.attribute}=${formatted}`;
+  }
+
+  private reason(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
   }
 }

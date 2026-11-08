@@ -124,7 +124,7 @@ TESTS ..> INFRA
 
 `src/domain/ShapeProvider.ts` 定义图形扩展契约；`ShapeProviderRegistry` 按图形 kind 注册 provider，并统一负责命令创建、SVG 读回和序列化分派。默认装配由 `src/plugins/defaultShapeProviders.ts` 注册 Phase 1 的六种图形；应用层创建命令与 XML 编解码器只依赖注册表，不再直接依赖静态 `ShapeFactory`。新 provider 可在不修改这些调用点的情况下参与创建和 SVG 往返。
 
-验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 43 项通过，`npm run typecheck` 通过。
+验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 46 项通过，`npm run typecheck` 通过。
 
 ### Command 注册
 
@@ -136,4 +136,12 @@ TESTS ..> INFRA
 
 `src/application/TreeDecorator.ts` 定义逐个图形行追加标签的接口；`TreeDecoratorRegistry.suffix` 按注册顺序调用装饰器，标签间用一个空格拼接。`TreeCommand.renderShape` 只依赖该注册表追加后缀；未注册装饰器时空后缀不会改变 Phase 1 树输出。空标签被忽略，含换行或非字符串结果按契约错误报告。
 
-测试覆盖两个装饰器并存及顺序、无装饰器时既有 tree 基线、重复名称和无效标签。属性处理、`stats` / `dir`、`box`、树标签实例和配置加载尚未完成。
+测试覆盖两个装饰器并存及顺序、无装饰器时既有 tree 基线、重复名称和无效标签。实际标签插件待后续接入。
+
+### AttributeHandler 注册与事务
+
+`src/application/AttributeHandler.ts` 提供公开处理器契约，`AttributeHandlerRegistry.resolve` 对目标图形和属性进行匹配：无命中由 `SetCommand` 调用原有 `Shape.setAttribute`，单一命中执行该处理器，多重命中在修改前报错。注册名唯一。`SetCommand.execute` 先捕获整棵目标子树的 `ShapeSnapshot`；处理器失败即恢复快照并报 `error: attribute handler <name> failed: <reason>`，不会转入默认设置。命令历史只在 `execute` 成功后入栈，因此一次成功处理构成一个 undo/redo 单元，失败时文档与历史均不变。
+
+ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；处理器通过公开 `Shape` 与子图形接口访问目标；多部件操作使用一个 `SetCommand` 和子树快照；失败回滚覆盖已发生的部分修改，回滚自身失败时另行显式报告。测试覆盖修改、undo/redo、多重命中，以及部分修改后抛错时恢复内容并保留 redo 历史。
+
+`stats` / `dir`、实际 `box` 属性处理器与图形、dirty/type 树标签、动态配置加载和 VSCode 演示证据尚未完成。

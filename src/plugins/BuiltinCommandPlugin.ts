@@ -37,6 +37,7 @@ class BuiltinCommand implements Command {
       context.shapeProviders,
       context.commandRegistry,
       context.treeDecorators,
+      context.attributeHandlers,
     );
     return catalog.create([this.name, ...arguments_]);
   }

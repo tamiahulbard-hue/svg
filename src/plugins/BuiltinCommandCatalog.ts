@@ -24,6 +24,7 @@ import { HelpCommand } from "../application/commands/HelpCommand.js";
 import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 import type { CommandRegistry } from "../application/CommandRegistry.js";
 import type { TreeDecoratorRegistry } from "../application/TreeDecoratorRegistry.js";
+import type { AttributeHandlerRegistry } from "../application/AttributeHandlerRegistry.js";
 
 export class BuiltinCommandCatalog {
   constructor(
@@ -33,6 +34,7 @@ export class BuiltinCommandCatalog {
     private readonly shapeProviders: ShapeProviderRegistry,
     private readonly commandRegistry: CommandRegistry,
     private readonly treeDecorators: TreeDecoratorRegistry,
+    private readonly attributeHandlers: AttributeHandlerRegistry,
   ) {}
 
   create(tokens: readonly string[]): ExecutableCommand {
@@ -170,12 +172,18 @@ export class BuiltinCommandCatalog {
     const shape = this.session.document.requireShape(id);
 
     if (attribute === "fill" || attribute === "stroke" || attribute === "text") {
-      return new SetCommand(this.session, id, attribute, rawValue);
+      return new SetCommand(this.session, id, attribute, rawValue, this.attributeHandlers);
     }
     if (attribute === "stroke-width" || typeof shape.attributes[attribute] === "number") {
-      return new SetCommand(this.session, id, attribute, this.number(rawValue, attribute));
+      return new SetCommand(
+        this.session,
+        id,
+        attribute,
+        this.number(rawValue, attribute),
+        this.attributeHandlers,
+      );
     }
-    return new SetCommand(this.session, id, attribute, rawValue);
+    return new SetCommand(this.session, id, attribute, rawValue, this.attributeHandlers);
   }
 
   private requireCount(name: string, arguments_: readonly string[], min: number, max = min): void {

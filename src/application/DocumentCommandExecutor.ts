@@ -8,6 +8,7 @@ import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 import { CommandRegistry } from "./CommandRegistry.js";
 import type { CommandContext } from "./Command.js";
 import { TreeDecoratorRegistry } from "./TreeDecoratorRegistry.js";
+import { AttributeHandlerRegistry } from "./AttributeHandlerRegistry.js";
 
 export class DocumentCommandExecutor implements CommandExecutor {
   private readonly commandFactory: CommandFactory;
@@ -19,6 +20,7 @@ export class DocumentCommandExecutor implements CommandExecutor {
     shapeProviders: ShapeProviderRegistry,
     commandRegistry = new CommandRegistry(),
     treeDecorators = new TreeDecoratorRegistry(),
+    attributeHandlers = new AttributeHandlerRegistry(),
   ) {
     this.history = new CommandHistory();
     const context: CommandContext = {
@@ -28,6 +30,7 @@ export class DocumentCommandExecutor implements CommandExecutor {
       shapeProviders,
       commandRegistry,
       treeDecorators,
+      attributeHandlers,
     };
     this.commandFactory = new CommandFactory(context);
   }

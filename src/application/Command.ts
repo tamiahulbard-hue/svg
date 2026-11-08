@@ -4,6 +4,7 @@ import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 import type { CommandHistory } from "./CommandHistory.js";
 import type { CommandRegistry } from "./CommandRegistry.js";
 import type { TreeDecoratorRegistry } from "./TreeDecoratorRegistry.js";
+import type { AttributeHandlerRegistry } from "./AttributeHandlerRegistry.js";
 
 export interface ExecutableCommand {
   readonly historyEffect: "edit" | "barrier" | "skip";
@@ -18,6 +19,7 @@ export interface CommandContext {
   readonly shapeProviders: ShapeProviderRegistry;
   readonly commandRegistry: CommandRegistry;
   readonly treeDecorators: TreeDecoratorRegistry;
+  readonly attributeHandlers: AttributeHandlerRegistry;
 }
 
 export interface Command {
