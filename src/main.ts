@@ -11,9 +11,11 @@ import { AttributeHandlerRegistry } from "./application/AttributeHandlerRegistry
 import { StatsCommandPlugin } from "./plugins/stats/StatsCommandPlugin.js";
 import { DirCommandPlugin } from "./plugins/dir/DirCommandPlugin.js";
 import { NodeDirectoryAdapter } from "./infrastructure/NodeDirectoryAdapter.js";
+import { BoxShapeProvider } from "./plugins/box/BoxShapeProvider.js";
 
 const session = new DocumentSession();
 const shapeProviders = createDefaultShapeProviderRegistry();
+shapeProviders.register(new BoxShapeProvider());
 const fileAdapter = new SvgFileAdapter(new SvgXmlCodec(shapeProviders));
 const commandRegistry = new CommandRegistry();
 registerBuiltinCommands(commandRegistry);
