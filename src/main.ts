@@ -12,6 +12,7 @@ import { StatsCommandPlugin } from "./plugins/stats/StatsCommandPlugin.js";
 import { DirCommandPlugin } from "./plugins/dir/DirCommandPlugin.js";
 import { NodeDirectoryAdapter } from "./infrastructure/NodeDirectoryAdapter.js";
 import { BoxShapeProvider } from "./plugins/box/BoxShapeProvider.js";
+import { BoxAttributeHandler } from "./plugins/box/BoxAttributeHandler.js";
 
 const session = new DocumentSession();
 const shapeProviders = createDefaultShapeProviderRegistry();
@@ -23,6 +24,7 @@ commandRegistry.register(new StatsCommandPlugin());
 commandRegistry.register(new DirCommandPlugin());
 const treeDecorators = new TreeDecoratorRegistry();
 const attributeHandlers = new AttributeHandlerRegistry();
+attributeHandlers.register(new BoxAttributeHandler());
 const directoryAccess = new NodeDirectoryAdapter();
 const cli = new Cli(
   new DocumentCommandExecutor(
