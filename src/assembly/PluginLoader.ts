@@ -6,12 +6,12 @@ import type { AttributeHandlerRegistry } from "../application/AttributeHandlerRe
 import type { CommandRegistry } from "../application/CommandRegistry.js";
 import type { DirectoryAccess } from "../application/DirectoryAccess.js";
 import type { DocumentSession } from "../application/DocumentSession.js";
+import type { PluginActivationContext } from "../application/PluginActivationContext.js";
 import type { SvgFilePort } from "../application/SvgFilePort.js";
 import type { TreeDecoratorRegistry } from "../application/TreeDecoratorRegistry.js";
 import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 import {
   StagedPluginContext,
-  type PluginActivationContext,
   type PluginContributions,
 } from "./PluginContext.js";
 

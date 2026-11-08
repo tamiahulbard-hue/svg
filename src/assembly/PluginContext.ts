@@ -2,6 +2,7 @@ import type { AttributeHandler } from "../application/AttributeHandler.js";
 import type { Command } from "../application/Command.js";
 import type { DirectoryAccess } from "../application/DirectoryAccess.js";
 import type { DocumentSession } from "../application/DocumentSession.js";
+import type { PluginActivationContext } from "../application/PluginActivationContext.js";
 import type { SvgFilePort } from "../application/SvgFilePort.js";
 import type { TreeDecorator } from "../application/TreeDecorator.js";
 import type { ShapeProvider } from "../domain/ShapeProvider.js";
@@ -13,16 +14,6 @@ export type PluginContributions = {
   readonly decorators: readonly TreeDecorator[];
   readonly attributes: readonly AttributeHandler[];
 };
-
-export interface PluginActivationContext {
-  readonly session: DocumentSession;
-  readonly filePort: SvgFilePort | undefined;
-  readonly directoryAccess: DirectoryAccess;
-  registerShapeProvider(provider: ShapeProvider): void;
-  registerCommand(command: Command): void;
-  registerTreeDecorator(decorator: TreeDecorator): void;
-  registerAttributeHandler(handler: AttributeHandler): void;
-}
 
 export class StagedPluginContext implements PluginActivationContext {
   private readonly shapes: ShapeProvider[] = [];

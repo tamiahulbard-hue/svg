@@ -178,7 +178,7 @@ ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；�
 
 ### 动态插件配置与事务式激活
 
-`PluginLoader` 仅依赖通用 `PluginActivationContext` 与四类注册表，不引用具体插件。每个模块以 default export 的 `activate(context, options)` 形式激活，并通过包内 `package.json` 的 `contributes` 清单声明 shapes、commands、decorators、attributes。激活期间注册项先暂存；检查清单、插件内重名及全局重名后才一次性提交。失败、声明不符或冲突会丢弃该插件的暂存项并调用已创建贡献的 `dispose()`，错误信息写到 stderr，后续插件继续加载。
+`PluginActivationContext` 契约位于 `src/application/`；插件只依赖该公开契约和领域/应用接口，不反向导入宿主装配模块。`PluginLoader` 与暂存注册上下文位于 `src/assembly/`，仅依赖该契约与四类注册表，不引用具体插件。每个模块以 default export 的 `activate(context, options)` 形式激活，并通过包内 `package.json` 的 `contributes` 清单声明 shapes、commands、decorators、attributes。激活期间注册项先暂存；检查清单、插件内重名及全局重名后才一次性提交。失败、声明不符或冲突会丢弃该插件的暂存项并调用已创建贡献的 `dispose()`，错误信息写到 stderr，后续插件继续加载。
 
 配置包含 `plugins` 数组，项支持 `module`、`enabled` 和 `options`；相对模块路径以配置文件所在目录为基准，禁用项跳过。语法或结构无效时不加载任何可选插件，程序仍以 Phase 1 内置能力启动。默认代码装配由 `src/assembly/codePlugins.ts` 声明；`npm run cli -- --config plugins.config.json` 使用文件装配，两种方式共用相同 loader、激活与注册路径，且按 stats、dir、box 顺序加载。构建脚本将插件清单复制到 `dist`，便于已编译插件入口查找清单。
 

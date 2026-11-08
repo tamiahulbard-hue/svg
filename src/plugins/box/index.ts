@@ -1,4 +1,4 @@
-import type { PluginActivationContext } from "../../assembly/PluginContext.js";
+import type { PluginActivationContext } from "../../application/PluginActivationContext.js";
 import { BoxAttributeHandler } from "./BoxAttributeHandler.js";
 import { BoxShapeProvider } from "./BoxShapeProvider.js";
 import { BoxTypeDecorator } from "./BoxTypeDecorator.js";

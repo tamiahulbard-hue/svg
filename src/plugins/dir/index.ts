@@ -1,4 +1,4 @@
-import type { PluginActivationContext } from "../../assembly/PluginContext.js";
+import type { PluginActivationContext } from "../../application/PluginActivationContext.js";
 import { DirCommandPlugin } from "./DirCommandPlugin.js";
 
 export default {
