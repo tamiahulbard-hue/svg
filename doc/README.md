@@ -124,7 +124,7 @@ TESTS ..> INFRA
 
 `src/domain/ShapeProvider.ts` 定义图形扩展契约；`ShapeProviderRegistry` 按图形 kind 注册 provider，并统一负责命令创建、SVG 读回和序列化分派。默认装配由 `src/plugins/defaultShapeProviders.ts` 注册 Phase 1 的六种图形；应用层创建命令与 XML 编解码器只依赖注册表，不再直接依赖静态 `ShapeFactory`。新 provider 可在不修改这些调用点的情况下参与创建和 SVG 往返。
 
-验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 46 项通过，`npm run typecheck` 通过。
+验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 49 项通过，`npm run typecheck` 通过。
 
 ### Command 注册
 
@@ -144,4 +144,8 @@ TESTS ..> INFRA
 
 ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；处理器通过公开 `Shape` 与子图形接口访问目标；多部件操作使用一个 `SetCommand` 和子树快照；失败回滚覆盖已发生的部分修改，回滚自身失败时另行显式报告。测试覆盖修改、undo/redo、多重命中，以及部分修改后抛错时恢复内容并保留 redo 历史。
 
-`stats` / `dir`、实际 `box` 属性处理器与图形、dirty/type 树标签、动态配置加载和 VSCode 演示证据尚未完成。
+### `stats` 命令插件
+
+`src/plugins/stats/StatsCommandPlugin.ts` 独立实现命令接口并由组合根注册；它按画布直接子项顺序深度优先遍历，`GroupShape`（包括后续 box 容器）只累加 containers，叶子按首次出现顺序计数，命令为 `historyEffect=skip`。未注册时仍通过统一 CommandRegistry 返回 unknown command。
+
+测试覆盖嵌套顺序、叶子 total、容器数、空画布、help、参数错误、禁用和 undo 历史不受影响。当前全量测试 49 项通过；`dir`、box 属性处理器与图形、dirty/type 树标签、动态配置加载和 VSCode 演示证据尚未完成。
