@@ -68,6 +68,10 @@ export abstract class Shape {
     return `${this.kind}#${this.id}`;
   }
 
+  get creationSummary(): string {
+    return `${this.identity} created`;
+  }
+
   protected get styleSummary(): string {
     const styles = [
       this.fill === undefined ? undefined : `fill=${this.fill}`,

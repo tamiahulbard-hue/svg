@@ -24,7 +24,7 @@ export class CreateCommand implements ExecutableCommand {
     const parentDescription = this.parentId === undefined
       ? ""
       : ` in g#${this.parentId}`;
-    return `${this.shape.kind}#${this.shape.id} created${parentDescription}`;
+    return `${this.shape.creationSummary}${parentDescription}`;
   }
 
   undo(): string {

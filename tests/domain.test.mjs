@@ -12,6 +12,7 @@ import { TextShape } from "../dist/domain/TextShape.js";
 
 test("shape implementations expose their geometry and supported attributes", () => {
   const rect = new RectShape("r", 1, 2, 3, 4, { fill: "#fff" });
+  assert.equal(rect.creationSummary, "rect#r created");
   rect.setAttribute("width", 12);
   rect.setAttribute("stroke-width", 2);
   assert.deepEqual(rect.attributes, {
