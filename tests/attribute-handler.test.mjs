@@ -80,3 +80,17 @@ test("multiple matching handlers are rejected and ordinary attributes keep fallb
   assert.equal(run(runtime.executor, "set node-rect label other"), "error: unknown attribute: label");
   assert.equal(run(runtime.executor, "set node-rect width 10"), "rect#node-rect updated: width=10");
 });
+
+test("handlers can provide plugin-specific success and undo feedback", () => {
+  const handler = {
+    ...boxLabelHandler(),
+    successMessage: (_shape, _attribute, value) => `plugin set ${value}`,
+    undoMessage: (_shape, _attribute, previousValue) => `plugin restored ${previousValue}`,
+  };
+  const runtime = createRuntime(undefined, undefined, [], [], [handler]);
+  createBox(runtime);
+
+  assert.equal(run(runtime.executor, 'set node label "after"'), "plugin set after");
+  assert.equal(run(runtime.executor, "undo"), "plugin restored before");
+  assert.equal(run(runtime.executor, "redo"), "plugin set after");
+});

@@ -10,6 +10,8 @@ export class SetCommand implements ExecutableCommand {
   private shape: Shape | undefined;
   private snapshot: ShapeSnapshot | undefined;
   private previousValue: ShapeAttributeValue | undefined;
+  private customSuccessMessage: string | undefined;
+  private customUndoMessage: string | undefined;
 
   constructor(
     private readonly session: DocumentSession,
@@ -30,6 +32,19 @@ export class SetCommand implements ExecutableCommand {
         : handler.apply(shape, this.attribute, this.value) ?? previousValue;
       if (handler === undefined) {
         shape.setAttribute(this.attribute, this.value);
+        this.customSuccessMessage = undefined;
+        this.customUndoMessage = undefined;
+      } else {
+        this.customSuccessMessage = handler.successMessage?.(
+          shape,
+          this.attribute,
+          this.value,
+        );
+        this.customUndoMessage = handler.undoMessage?.(
+          shape,
+          this.attribute,
+          this.previousValue,
+        );
       }
     } catch (error) {
       try {
@@ -47,7 +62,8 @@ export class SetCommand implements ExecutableCommand {
     this.shape = shape;
     this.snapshot = snapshot;
     const formatted = typeof this.value === "string" ? `"${this.value}"` : this.value;
-    return `${shape.kind}#${shape.id} updated: ${this.attribute}=${formatted}`;
+    return this.customSuccessMessage
+      ?? `${shape.kind}#${shape.id} updated: ${this.attribute}=${formatted}`;
   }
 
   undo(): string {
@@ -55,6 +71,9 @@ export class SetCommand implements ExecutableCommand {
       throw new DomainError("cannot undo an attribute change that has not been executed");
     }
     this.snapshot.restore();
+    if (this.customUndoMessage !== undefined) {
+      return this.customUndoMessage;
+    }
     if (this.previousValue === undefined) {
       return `${this.shape.kind}#${this.shape.id} updated: ${this.attribute} cleared`;
     }

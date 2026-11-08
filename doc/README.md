@@ -154,6 +154,8 @@ SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接
 
 ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；处理器通过公开 `Shape` 与子图形接口访问目标；多部件操作使用一个 `SetCommand` 和子树快照；失败回滚覆盖已发生的部分修改，回滚自身失败时另行显式报告。测试覆盖修改、undo/redo、多重命中，以及部分修改后抛错时恢复内容并保留 redo 历史。
 
+处理器可选提供 `successMessage` / `undoMessage` 覆盖领域反馈；未提供时 `SetCommand` 保留通用输出。反馈计算失败也处于同一事务边界内，恢复子树并报告处理器错误。
+
 ### `stats` 命令插件
 
 `src/plugins/stats/StatsCommandPlugin.ts` 独立实现命令接口并由组合根注册；它按画布直接子项顺序深度优先遍历，`GroupShape`（包括后续 box 容器）只累加 containers，叶子按首次出现顺序计数，命令为 `historyEffect=skip`。未注册时仍通过统一 CommandRegistry 返回 unknown command。
