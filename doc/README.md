@@ -185,3 +185,11 @@ ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；�
 临时插件测试覆盖 options、相对路径、禁用条目、缺少模块/default export、依赖导入或 activate 失败、清单不符、重复注册、事务回滚、清理订阅及错误后继续加载。集成测试使用相同命令输入和运行目录启动 A/B 两种 CLI，验证 stdout 逐字节一致，并检查 box 树标签、stats 输出及 dir；当前 `npm test` 73 项通过，`npm run typecheck` 通过。
 
 Phase 2 剩余工作包括 VSCode Extension Host 演示证据、最终报告，以及完成全部功能后的 `p2` tag；不得移动现有 `final` tag。
+
+## VS Code 扩展实践
+
+`vscode-extension/` 提供 Explorer 文件标记和原生 Outline 集成。扩展激活时注册文件装饰提供器、文档符号提供器及文件变化通知；前者只为普通 `.svg` 文件返回 `[]` 装饰，后者将解析出的元素树映射为 `DocumentSymbol`，保留源范围以支持点击定位。无效或未完成 XML 返回空大纲。扩展不写入文件，也不更改 URI。
+
+VS Code 负责工作台 UI、Explorer/Outline 生命周期以及何时调用提供器；扩展通过 VS Code API 注册能力并返回展示数据。Explorer 文件标记属于“装饰器式”的附加呈现，但不等同经典 GoF Decorator：扩展没有包装并实现与被包装对象相同的文件接口，也不转发原对象操作。它更接近 Adapter：把 VS Code 的 URI、文件类型和 SVG 元素树转换成 `FileDecoration` 与 `DocumentSymbol`。更完整的职责与模式比较及复用评估见 `vscode-extension/README.md`。
+
+扩展示例为 `vscode-extension/examples/outline-demo.svg`；`npm test --prefix vscode-extension` 覆盖扩展名判定、目录排除、嵌套/无 id 节点、源代码范围、编辑后重新解析及不完整 XML。由于当前会话以无人值守方式运行，无法操作 Extension Development Host 或捕获真实 VS Code 窗口；要求的 Explorer 标记与 Outline 定位截图仍待在 VS Code 中手动运行 F5 后补入 `docs/images/`。不得以合成图或测试输出冒充 UI 截图。
