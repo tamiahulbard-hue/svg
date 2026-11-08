@@ -7,6 +7,7 @@ import type { SvgFilePort } from "./SvgFilePort.js";
 import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 import { CommandRegistry } from "./CommandRegistry.js";
 import type { CommandContext } from "./Command.js";
+import { TreeDecoratorRegistry } from "./TreeDecoratorRegistry.js";
 
 export class DocumentCommandExecutor implements CommandExecutor {
   private readonly commandFactory: CommandFactory;
@@ -17,6 +18,7 @@ export class DocumentCommandExecutor implements CommandExecutor {
     filePort: SvgFilePort | undefined,
     shapeProviders: ShapeProviderRegistry,
     commandRegistry = new CommandRegistry(),
+    treeDecorators = new TreeDecoratorRegistry(),
   ) {
     this.history = new CommandHistory();
     const context: CommandContext = {
@@ -25,6 +27,7 @@ export class DocumentCommandExecutor implements CommandExecutor {
       filePort,
       shapeProviders,
       commandRegistry,
+      treeDecorators,
     };
     this.commandFactory = new CommandFactory(context);
   }

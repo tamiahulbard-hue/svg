@@ -36,6 +36,7 @@ class BuiltinCommand implements Command {
       context.filePort,
       context.shapeProviders,
       context.commandRegistry,
+      context.treeDecorators,
     );
     return catalog.create([this.name, ...arguments_]);
   }

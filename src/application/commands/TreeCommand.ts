@@ -3,13 +3,15 @@ import { GroupShape } from "../../domain/GroupShape.js";
 import type { Shape } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
 import type { ExecutableCommand } from "../Command.js";
+import type { TreeDecoratorRegistry } from "../TreeDecoratorRegistry.js";
 
 export class TreeCommand implements ExecutableCommand {
   readonly historyEffect = "skip" as const;
 
   constructor(
     private readonly session: DocumentSession,
-    private readonly id?: string,
+    private readonly id: string | undefined,
+    private readonly decorators: TreeDecoratorRegistry,
   ) {}
 
   execute(): string {
@@ -46,7 +48,7 @@ export class TreeCommand implements ExecutableCommand {
   }
 
   private renderShape(shape: Shape, prefix: string, branch: string, includeChildren: boolean): string {
-    const lines = [`${prefix}${branch}${shape.treeSummary}`];
+    const lines = [`${prefix}${branch}${shape.treeSummary}${this.decorators.suffix(shape)}`];
     if (includeChildren && shape instanceof GroupShape) {
       lines.push(...this.renderChildren(shape.children, ""));
     }

@@ -3,6 +3,7 @@ import type { SvgFilePort } from "./SvgFilePort.js";
 import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 import type { CommandHistory } from "./CommandHistory.js";
 import type { CommandRegistry } from "./CommandRegistry.js";
+import type { TreeDecoratorRegistry } from "./TreeDecoratorRegistry.js";
 
 export interface ExecutableCommand {
   readonly historyEffect: "edit" | "barrier" | "skip";
@@ -16,6 +17,7 @@ export interface CommandContext {
   readonly filePort: SvgFilePort | undefined;
   readonly shapeProviders: ShapeProviderRegistry;
   readonly commandRegistry: CommandRegistry;
+  readonly treeDecorators: TreeDecoratorRegistry;
 }
 
 export interface Command {

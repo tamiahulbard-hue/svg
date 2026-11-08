@@ -4,6 +4,7 @@ import { DocumentCommandExecutor } from "../dist/application/DocumentCommandExec
 import { DocumentSession } from "../dist/application/DocumentSession.js";
 import { CommandRegistry } from "../dist/application/CommandRegistry.js";
 import { registerBuiltinCommands } from "../dist/plugins/BuiltinCommandPlugin.js";
+import { TreeDecoratorRegistry } from "../dist/application/TreeDecoratorRegistry.js";
 import { ShapeProviderRegistry } from "../dist/domain/ShapeProviderRegistry.js";
 import { SvgFileAdapter } from "../dist/infrastructure/SvgFileAdapter.js";
 import { SvgXmlCodec } from "../dist/infrastructure/SvgXmlCodec.js";
@@ -13,6 +14,7 @@ export function createRuntime(
   session = new DocumentSession(),
   filePort,
   additionalCommands = [],
+  additionalTreeDecorators = [],
 ) {
   const shapeProviders = createDefaultShapeProviderRegistry();
   const adapter = filePort ?? new SvgFileAdapter(new SvgXmlCodec(shapeProviders));
@@ -21,8 +23,18 @@ export function createRuntime(
   for (const command of additionalCommands) {
     commandRegistry.register(command);
   }
-  const executor = new DocumentCommandExecutor(session, adapter, shapeProviders, commandRegistry);
-  return { session, shapeProviders, filePort: adapter, commandRegistry, executor };
+  const treeDecorators = new TreeDecoratorRegistry();
+  for (const decorator of additionalTreeDecorators) {
+    treeDecorators.register(decorator);
+  }
+  const executor = new DocumentCommandExecutor(
+    session,
+    adapter,
+    shapeProviders,
+    commandRegistry,
+    treeDecorators,
+  );
+  return { session, shapeProviders, filePort: adapter, commandRegistry, treeDecorators, executor };
 }
 
 export function createFileAdapter(shapeProviders = createDefaultShapeProviderRegistry()) {
@@ -33,9 +45,10 @@ export function createCommandFactory(session) {
   const history = new CommandHistory();
   const shapeProviders = createDefaultShapeProviderRegistry();
   const commandRegistry = new CommandRegistry();
+  const treeDecorators = new TreeDecoratorRegistry();
   registerBuiltinCommands(commandRegistry);
   return new CommandFactory(
-    { session, history, filePort: undefined, shapeProviders, commandRegistry },
+    { session, history, filePort: undefined, shapeProviders, commandRegistry, treeDecorators },
   );
 }
 

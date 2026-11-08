@@ -124,10 +124,16 @@ TESTS ..> INFRA
 
 `src/domain/ShapeProvider.ts` 定义图形扩展契约；`ShapeProviderRegistry` 按图形 kind 注册 provider，并统一负责命令创建、SVG 读回和序列化分派。默认装配由 `src/plugins/defaultShapeProviders.ts` 注册 Phase 1 的六种图形；应用层创建命令与 XML 编解码器只依赖注册表，不再直接依赖静态 `ShapeFactory`。新 provider 可在不修改这些调用点的情况下参与创建和 SVG 往返。
 
-验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前 `npm test` 为 41 项通过，`npm run typecheck` 通过。
+验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 43 项通过，`npm run typecheck` 通过。
 
 ### Command 注册
 
 `src/application/Command.ts` 中的 `Command` 是命令定义扩展点；实现提供名称、help 文案和参数到可执行命令的创建方法。`CommandRegistry` 统一负责名称注册、重复名拒绝、分发及插件 help 列表。`CommandFactory.create` 只解析名称并委托注册表。Phase 1 命令作为内置 command 插件由 `src/plugins/BuiltinCommandPlugin.ts` 注册，原参数语义保留在插件目录下的 `BuiltinCommandCatalog`；主组合根显式装配它们。可选 command 插件可独立注册，未注册名称仍返回 unknown command。
 
-测试通过独立 `ping` 命令验证注册后分发、help 展示、参数错误、禁用时 unknown 以及重复注册；Phase 1 命令回归仍通过。树标签、属性处理、`stats` / `dir`、`box` 与配置加载尚未完成。
+测试通过独立 `ping` 命令验证注册后分发、help 展示、参数错误、禁用时 unknown 以及重复注册；Phase 1 命令回归仍通过。
+
+### TreeDecorator 注册
+
+`src/application/TreeDecorator.ts` 定义逐个图形行追加标签的接口；`TreeDecoratorRegistry.suffix` 按注册顺序调用装饰器，标签间用一个空格拼接。`TreeCommand.renderShape` 只依赖该注册表追加后缀；未注册装饰器时空后缀不会改变 Phase 1 树输出。空标签被忽略，含换行或非字符串结果按契约错误报告。
+
+测试覆盖两个装饰器并存及顺序、无装饰器时既有 tree 基线、重复名称和无效标签。属性处理、`stats` / `dir`、`box`、树标签实例和配置加载尚未完成。

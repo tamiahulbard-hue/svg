@@ -23,6 +23,7 @@ import { ShowCommand } from "../application/commands/ShowCommand.js";
 import { HelpCommand } from "../application/commands/HelpCommand.js";
 import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 import type { CommandRegistry } from "../application/CommandRegistry.js";
+import type { TreeDecoratorRegistry } from "../application/TreeDecoratorRegistry.js";
 
 export class BuiltinCommandCatalog {
   constructor(
@@ -31,6 +32,7 @@ export class BuiltinCommandCatalog {
     private readonly filePort: SvgFilePort | undefined,
     private readonly shapeProviders: ShapeProviderRegistry,
     private readonly commandRegistry: CommandRegistry,
+    private readonly treeDecorators: TreeDecoratorRegistry,
   ) {}
 
   create(tokens: readonly string[]): ExecutableCommand {
@@ -72,7 +74,7 @@ export class BuiltinCommandCatalog {
         return new SaveCommand(this.session, this.filePort, arguments_[0]);
       case "tree":
         this.requireCount(name, arguments_, 0, 1);
-        return new TreeCommand(this.session, arguments_[0]);
+        return new TreeCommand(this.session, arguments_[0], this.treeDecorators);
       case "show":
         this.requireCount(name, arguments_, 1);
         return new ShowCommand(this.session, this.required(arguments_, 0, "id"));
