@@ -1,0 +1,20 @@
+# Phase 1 §6 CLI session
+init 800 600
+create rect bg 0 0 800 600 #ffffff
+create text title 20 40 "My Diagram"
+create circle c1 100 100 20 red
+create rect box 200 80 60 60 #3366ff
+group markers c1 box
+tree
+move c1 30 0
+undo
+redo
+set title text "My Diagram v2"
+undo
+group bad c1 markers
+delete box
+undo
+save demo.svg
+undo
+read other.svg
+tree

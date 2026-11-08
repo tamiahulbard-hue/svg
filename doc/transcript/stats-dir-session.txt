@@ -1,0 +1,8 @@
+# dir works before a document exists and does not change it.
+dir
+init 100 100
+create rect r 0 0 10 10 red
+create g nested
+create circle c 5 5 2 in nested
+stats
+dir

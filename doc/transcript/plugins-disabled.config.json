@@ -1,0 +1,7 @@
+{
+  "plugins": [
+    { "module": "../../src/plugins/stats/index.ts", "enabled": false },
+    { "module": "../../src/plugins/dir/index.ts", "enabled": false },
+    { "module": "../../src/plugins/box/index.ts", "enabled": false }
+  ]
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect x="0" y="0" width="400" height="300" fill="#ffffff"/>
+  <text id="t1" x="10" y="290">imported</text>
+  <circle id="c1" cx="50" cy="50" r="10"/>
+  <g id="g1">
+    <rect id="r2" x="0" y="0" width="10" height="10"/>
+    <circle id="c2" cx="5" cy="5" r="2"/>
+  </g>
+  <ellipse id="e1" cx="1" cy="2" rx="3" ry="4"/>
+</svg>

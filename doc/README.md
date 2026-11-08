@@ -124,7 +124,7 @@ TESTS ..> INFRA
 
 `src/domain/ShapeProvider.ts` 定义图形扩展契约；`ShapeProviderRegistry` 按图形 kind 注册 provider，并统一负责命令创建、SVG 读回和序列化分派。默认装配由 `src/plugins/defaultShapeProviders.ts` 注册 Phase 1 的六种图形；应用层创建命令与 XML 编解码器只依赖注册表，不再直接依赖静态 `ShapeFactory`。新 provider 可在不修改这些调用点的情况下参与创建和 SVG 往返。
 
-验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 73 项通过，`npm run typecheck` 通过。
+验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 75 项通过，`npm run typecheck` 通过。
 
 SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接受该 SVG 元素的 provider，则优先由它读回；未注册该 provider 时，继续走元素本身的常规 provider（例如 `<g data-kind="box">` 可降级为普通分组）。`GroupShape` 默认允许 ungroup、允许移除所有子项；复合插件可通过覆写 `canUngroup` 和 `isRequiredChild` 声明结构约束，核心文档操作负责执行约束并在失败时保持原结构。
 
@@ -182,7 +182,7 @@ ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；�
 
 配置包含 `plugins` 数组，项支持 `module`、`enabled` 和 `options`；相对模块路径以配置文件所在目录为基准，禁用项跳过。语法或结构无效时不加载任何可选插件，程序仍以 Phase 1 内置能力启动。默认代码装配由 `src/assembly/codePlugins.ts` 声明；`npm run cli -- --config plugins.config.json` 使用文件装配，两种方式共用相同 loader、激活与注册路径，且按 stats、dir、box 顺序加载。构建脚本将插件清单复制到 `dist`，便于已编译插件入口查找清单。
 
-临时插件测试覆盖 options、相对路径、禁用条目、缺少模块/default export、依赖导入或 activate 失败、清单不符、重复注册、事务回滚、清理订阅及错误后继续加载。集成测试使用相同命令输入和运行目录启动 A/B 两种 CLI，验证 stdout 逐字节一致，并检查 box 树标签、stats 输出及 dir；当前 `npm test` 73 项通过，`npm run typecheck` 通过。
+临时插件测试覆盖 options、相对路径、禁用条目、缺少模块/default export、依赖导入或 activate 失败、清单不符、重复注册、事务回滚、清理订阅及错误后继续加载。集成测试使用相同命令输入和运行目录启动 A/B 两种 CLI，验证 stdout 逐字节一致，并检查 box 树标签、stats 输出及 dir；当前 `npm test` 75 项通过，`npm run typecheck` 通过。
 
 ### Metrics 生成
 
@@ -297,6 +297,12 @@ HOST ..> PLUGINS : dynamic import
 - **状态：** 已采纳。
 - **决策：** `activate` 只写入 `StagedPluginContext` 暂存列表。loader 比较 manifest 与实际四类注册名集合、检查插件内和跨插件重名后才提交注册表。失败插件的已创建贡献按需调用 `dispose()`；清理异常也会写入错误信息，但不阻断后续插件。options 原样传给 `activate`，配置相对路径相对配置文件解析。
 - **结果：** 错误插件不留下部分注册；后续插件继续加载。配置语法/结构错误不加载可选插件并以内置能力启动。
+
+### 双装配与 Phase 1 transcript
+
+`doc/transcript/` 保存纯命令/注释输入、JSON 编码的预期终端输出和单独的 SVG 输入/保存结果；JSON 编码保留末尾 CLI prompt 空格且不会在版本差异中产生尾随空白。`tests/dual-assembly-transcript.test.mjs` 使用同一输入、同一工作目录、同一初始文件顺序执行代码装配 A 与配置装配 B，并逐字节比较 stdout。Phase 1 §6 会话和 §6.1 的 box 版本 B 各自使用可重建的临时工作目录；stats/dir 会话共用只读固定目录，测试在运行前后递归比较目录内容，输出日志保留在进程结果中而不写入被测目录。Windows PowerShell 中可用 `$env:UPDATE_TRANSCRIPTS = "1"; node --test tests/dual-assembly-transcript.test.mjs` 显式更新标准快照。
+
+`plugins-disabled.config.json` 禁用 stats、dir、box 与两个树 decorator。禁用配置下的 Phase 1 §6 transcript 快照已与 `final` 标签的 CLI 在隔离工作目录中逐字节比较，输出一致；此验证也覆盖原有 help 文案、无树标签的基线行为。完整 A/B 快照还覆盖 box 场景及 stats/dir 的新增命令场景。
 
 ## VS Code 扩展实践
 

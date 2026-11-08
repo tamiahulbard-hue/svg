@@ -1,0 +1,13 @@
+# Phase 1 §6.1 version B: box composition
+init 800 600
+create box n1 120 100 160 60 "开始"
+create box n2 520 100 160 60 "处理数据"
+create line arrow1 280 130 520 130 black
+group flowchart n1 n2 arrow1
+move n2 0 100
+undo
+set n2 fill #f5a623
+set n2 label "处理数据 v2"
+undo
+tree
+save flowchart-box.svg
