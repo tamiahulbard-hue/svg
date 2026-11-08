@@ -124,7 +124,7 @@ TESTS ..> INFRA
 
 `src/domain/ShapeProvider.ts` 定义图形扩展契约；`ShapeProviderRegistry` 按图形 kind 注册 provider，并统一负责命令创建、SVG 读回和序列化分派。默认装配由 `src/plugins/defaultShapeProviders.ts` 注册 Phase 1 的六种图形；应用层创建命令与 XML 编解码器只依赖注册表，不再直接依赖静态 `ShapeFactory`。新 provider 可在不修改这些调用点的情况下参与创建和 SVG 往返。
 
-验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 67 项通过，`npm run typecheck` 通过。
+验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 73 项通过，`npm run typecheck` 通过。
 
 SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接受该 SVG 元素的 provider，则优先由它读回；未注册该 provider 时，继续走元素本身的常规 provider（例如 `<g data-kind="box">` 可降级为普通分组）。`GroupShape` 默认允许 ungroup、允许移除所有子项；复合插件可通过覆写 `canUngroup` 和 `isRequiredChild` 声明结构约束，核心文档操作负责执行约束并在失败时保持原结构。
 
@@ -132,13 +132,13 @@ SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接
 
 ### `box` ShapeProvider
 
-`src/plugins/box/BoxShapeProvider.ts` 将 `create box <id> <x> <y> <w> <h> "<标题>"` 创建为 kind `box` 的 `GroupShape` 子类；内部必需部件为 `<id>-rect`（默认填充 `#4a90d9`）与 `<id>-label`（位置为 x+20、y+35），后续子项可用于嵌套。容器身份仍显示为 `g#<id>`，provider dispatch 使用 `box` kind。组合根单独注册 Box provider；其他默认装配未注册时，`data-kind="box"` 的 SVG 由通用 `g` provider 降级读回。
+`src/plugins/box/BoxShapeProvider.ts` 将 `create box <id> <x> <y> <w> <h> "<标题>"` 创建为 kind `box` 的 `GroupShape` 子类；内部必需部件为 `<id>-rect`（默认填充 `#4a90d9`）与 `<id>-label`（位置为 x+20、y+35），后续子项可用于嵌套。容器身份仍显示为 `g#<id>`，provider dispatch 使用 `box` kind。插件默认导出在激活时注册 provider；未加载该插件时，`data-kind="box"` 的 SVG 由通用 `g` provider 降级读回。
 
 序列化使用 `<g id="…" data-kind="box">`。ADR：启用插件时只接受开头依次为派生 ID 矩形与文字的完整结构；缺失、错序、类型或 ID 不符一律拒绝整份读入，不生成半成品，也不静默降级。全局重复 ID 仍由 XML/文档唯一性校验拒绝。必需部件不可删除或移走，box 不可 ungroup；嵌套 box 是允许的额外子项。测试覆盖创建摘要、嵌套、ID 冲突原子性、保护约束、插件启用 round-trip、未启用降级及坏数据读入不替换当前文档。
 
 `BoxAttributeHandler`（注册名 `box-attributes`）处理 box 的 `fill` 与 `label`：分别修改内部矩形填充和内部文本。一次 `set` 通过 `SetCommand` 子树快照成为单个 undo/redo 单元，并输出插件专属反馈；其余属性继续使用原有规则。测试覆盖属性目标、反馈、撤销/重做及普通图形回退行为。
 
-`BoxTypeDecorator` 为 kind `box` 的容器追加 `(box)`，只匹配图形类型，不访问 dirty 状态。默认组合根注册它；与其他标签组合时采用 TreeDecorator 注册顺序。
+`BoxTypeDecorator` 为 kind `box` 的容器追加 `(box)`，只匹配图形类型，不访问 dirty 状态。由 box 插件注册；与其他标签组合时采用 TreeDecorator 注册顺序。
 
 `ModifiedStarDecorator` 以内容与最近一次成功 `save` / `read` 快照的差异判定 dirty；未保存的新文档中每个形状行立即标 `*`，undo 回到保存点时星号消失。快照封装在装饰器实例中，由 `DocumentSession` 生命周期事件刷新，不依赖外部文件变化。属性变化只标记对应形状，不向祖先传播；子项新增/删除/重排会使其直接父容器行变脏。画布尺寸变化标记现有根图形行；由于扩展点只装饰 Shape，空画布的 `svg` 标题行不添加标签。标签拼接遵循注册顺序，故 `(box) *`。
 
@@ -166,7 +166,7 @@ ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；�
 
 ### `stats` 命令插件
 
-`src/plugins/stats/StatsCommandPlugin.ts` 独立实现命令接口并由组合根注册；它按画布直接子项顺序深度优先遍历，`GroupShape`（包括后续 box 容器）只累加 containers，叶子按首次出现顺序计数，命令为 `historyEffect=skip`。未注册时仍通过统一 CommandRegistry 返回 unknown command。
+`src/plugins/stats/StatsCommandPlugin.ts` 独立实现命令接口并由 stats 插件注册；它按画布直接子项顺序深度优先遍历，`GroupShape`（包括 box 容器）只累加 containers，叶子按首次出现顺序计数，命令为 `historyEffect=skip`。未注册时仍通过统一 CommandRegistry 返回 unknown command。
 
 测试覆盖嵌套顺序、叶子 total、容器数、空画布、help、参数错误、禁用和 undo 历史不受影响。
 
@@ -174,4 +174,14 @@ ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；�
 
 `src/application/DirectoryAccess.ts` 定义当前工作目录查询和目录读取端口；`NodeDirectoryAdapter` 在 `src/infrastructure/` 使用 Node 文件系统实现。`DirCommandPlugin` 只依赖该端口，因此测试可用替身验证排序、隐藏项、空目录和失败行为；真实适配器用固定临时目录验证。目录优先、每组采用 JavaScript 字符串序比较；不递归。符号链接和其他特殊非目录项统一列为 `[FILE]`，绝不跟随目标。读取失败输出精确的 `error: cannot read directory: <path>`。
 
-`dir` 提交时全量 53 项测试包含替身场景、真实临时目录场景、无 SVG 文档使用、成功/失败不改变 undo/redo 的验证。两种装配方式的同目录逐字节比对将在配置加载阶段补充。`box` 属性处理器、dirty/type 树标签、动态配置加载和 VSCode 演示证据尚未完成。
+`dir` 提交时全量 53 项测试包含替身场景、真实临时目录场景、无 SVG 文档使用、成功/失败不改变 undo/redo 的验证。
+
+### 动态插件配置与事务式激活
+
+`PluginLoader` 仅依赖通用 `PluginActivationContext` 与四类注册表，不引用具体插件。每个模块以 default export 的 `activate(context, options)` 形式激活，并通过包内 `package.json` 的 `contributes` 清单声明 shapes、commands、decorators、attributes。激活期间注册项先暂存；检查清单、插件内重名及全局重名后才一次性提交。失败、声明不符或冲突会丢弃该插件的暂存项并调用已创建贡献的 `dispose()`，错误信息写到 stderr，后续插件继续加载。
+
+配置包含 `plugins` 数组，项支持 `module`、`enabled` 和 `options`；相对模块路径以配置文件所在目录为基准，禁用项跳过。语法或结构无效时不加载任何可选插件，程序仍以 Phase 1 内置能力启动。默认代码装配由 `src/assembly/codePlugins.ts` 声明；`npm run cli -- --config plugins.config.json` 使用文件装配，两种方式共用相同 loader、激活与注册路径，且按 stats、dir、box 顺序加载。构建脚本将插件清单复制到 `dist`，便于已编译插件入口查找清单。
+
+临时插件测试覆盖 options、相对路径、禁用条目、缺少模块/default export、依赖导入或 activate 失败、清单不符、重复注册、事务回滚、清理订阅及错误后继续加载。集成测试使用相同命令输入和运行目录启动 A/B 两种 CLI，验证 stdout 逐字节一致，并检查 box 树标签、stats 输出及 dir；当前 `npm test` 73 项通过，`npm run typecheck` 通过。
+
+Phase 2 剩余工作包括 VSCode Extension Host 演示证据、最终报告，以及完成全部功能后的 `p2` tag；不得移动现有 `final` tag。

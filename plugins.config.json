@@ -1,0 +1,7 @@
+{
+  "plugins": [
+    { "module": "./src/plugins/stats/index.ts" },
+    { "module": "./src/plugins/dir/index.ts" },
+    { "module": "./src/plugins/box/index.ts" }
+  ]
+}

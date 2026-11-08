@@ -1,0 +1,10 @@
+{
+  "name": "svg-plugin-box",
+  "private": true,
+  "type": "module",
+  "contributes": {
+    "shapes": ["box"],
+    "attributes": ["box-attributes"],
+    "decorators": ["box-type", "modified-star"]
+  }
+}

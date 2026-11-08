@@ -1,0 +1,8 @@
+{
+  "name": "svg-plugin-stats",
+  "private": true,
+  "type": "module",
+  "contributes": {
+    "commands": ["stats"]
+  }
+}

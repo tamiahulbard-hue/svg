@@ -1,0 +1,8 @@
+{
+  "name": "svg-plugin-dir",
+  "private": true,
+  "type": "module",
+  "contributes": {
+    "commands": ["dir"]
+  }
+}

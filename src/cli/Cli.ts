@@ -17,13 +17,21 @@ export class Cli {
     });
 
     console.log("svg-editor 0.1 - type 'help' for commands");
+    let closed = false;
+    readline.on("close", () => {
+      closed = true;
+    });
     readline.setPrompt("svg> ");
     readline.prompt();
 
     readline.on("line", (input) => {
+      if (closed) {
+        return;
+      }
       const command = input.trim();
 
       if (command === "exit" || command === "quit") {
+        closed = true;
         readline.close();
         return;
       }
@@ -42,7 +50,9 @@ export class Cli {
         }
       }
 
-      readline.prompt();
+      if (!closed) {
+        readline.prompt();
+      }
     });
   }
 }

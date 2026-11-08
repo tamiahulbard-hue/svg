@@ -33,7 +33,7 @@ export class HelpCommand implements ExecutableCommand {
       "  undo | redo                           undo or redo an edit",
       "  help                                  display this help",
       "  exit | quit                           leave the editor",
-      "Built-in types: rect, circle, ellipse, line, text, g (box is not included in this phase)",
+      "Built-in types: rect, circle, ellipse, line, text, g; plugins may add more types",
     ];
     if (this.additionalHelp.length > 0) {
       lines.push(this.additionalHelp);

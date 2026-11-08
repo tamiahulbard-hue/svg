@@ -65,7 +65,7 @@ test("help lists the documented commands and display requests do not touch histo
   run(executor, "create circle c 1 2 3");
   assert.match(run(executor, "help"), /create ellipse <id> <cx> <cy> <rx> <ry>/);
   assert.match(run(executor, "help"), /undo \| redo/);
-  assert.match(run(executor, "help"), /box is not included in this phase/);
+  assert.match(run(executor, "help"), /plugins may add more types/);
   run(executor, "tree");
   run(executor, "show c");
   run(executor, "help");
