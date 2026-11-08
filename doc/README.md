@@ -188,7 +188,113 @@ ADR：处理器匹配冲突采用拒绝，不采用优先级或隐式组合；�
 
 `node scripts/metrics.mjs --base final --head HEAD` 从 Git 对象读取所选版本的追踪 TypeScript 文件，生成 `docs/metrics/report.md`。报告按 kernel、assembly、plugins 汇总非空源代码行数与圈复杂度，并单独列出 VS Code 扩展源文件；测试、依赖和构建产物不计入 CLI 指标。圈复杂度为脚本中定义的语法决策点汇总，报告明确列出计数规则。最终 Phase 2 代码提交完成后须重新运行脚本，再把最终报告纳入收尾提交。
 
-Phase 2 剩余工作包括框架扩展点清单与 ADR/模块依赖图、可复现的完整 CLI transcript、VSCode Extension Host 演示证据和最终报告；全部完成后才创建 `p2` tag，不得移动现有 `final` tag。
+Phase 2 剩余工作包括可复现的完整 CLI transcript、VSCode Extension Host 演示证据和最终报告；全部完成后才创建 `p2` tag，不得移动现有 `final` tag。
+
+## Phase 2 架构与扩展点验收
+
+### 模块依赖图
+
+下图记录 Phase 1 的基线：命令和图形类型由集中工厂/注册处分派，组合根直接创建具体实现。
+
+```plantuml
+@startuml
+skinparam packageStyle rectangle
+package "CLI\nsrc/cli" as CLI
+package "Application\nsrc/application" as APP
+package "Domain\nsrc/domain" as DOMAIN
+package "Infrastructure\nsrc/infrastructure" as INFRA
+package "Composition Root\nsrc/main.ts" as MAIN
+CLI --> APP
+APP --> DOMAIN
+INFRA ..> APP : implements file ports
+INFRA --> DOMAIN : restores shapes
+MAIN --> CLI
+MAIN --> APP
+MAIN --> INFRA
+@enduml
+```
+
+Phase 2 将类型/命令实现移入可注册插件；宿主装配依赖接口和注册表，插件依赖 application/domain 公共契约。虚线表示运行期模块加载，不是 loader 对具体插件的静态导入。
+
+```plantuml
+@startuml
+skinparam packageStyle rectangle
+package "CLI Adapter\nsrc/cli" as CLI
+package "Application Core\nsrc/application" as APP {
+  interface Command
+  interface TreeDecorator
+  interface AttributeHandler
+  interface DirectoryAccess
+  class CommandRegistry
+  class TreeDecoratorRegistry
+  class AttributeHandlerRegistry
+}
+package "Domain Core\nsrc/domain" as DOMAIN {
+  interface ShapeProvider
+  class ShapeProviderRegistry
+  class SvgDocument
+}
+package "Infrastructure Adapters\nsrc/infrastructure" as INFRA
+package "Plugin Host\nsrc/assembly" as HOST
+package "Plugins\nsrc/plugins" as PLUGINS
+package "Composition Root\nsrc/main.ts" as MAIN
+file "plugins.config.json" as CONFIG
+
+CLI --> APP
+APP --> DOMAIN
+INFRA ..> APP : implements application ports
+INFRA --> DOMAIN : SVG mapping
+HOST --> APP : staging context / registries
+HOST --> DOMAIN : shape registry
+PLUGINS ..> APP : implements public contracts
+PLUGINS ..> DOMAIN : providers and shapes
+MAIN --> HOST : create loader
+MAIN --> APP : create registries
+MAIN --> INFRA : inject adapters
+MAIN ..> PLUGINS : code assembly list
+CONFIG ..> HOST : module names + options
+HOST ..> PLUGINS : dynamic import
+@enduml
+```
+
+### 扩展点清单
+
+| 接口 | 职责 | 内核调用位置 | 实现 | 禁用可选实现时的行为 | 契约违反时的处理 |
+|---|---|---|---|---|---|
+| `ShapeProvider` — `src/domain/ShapeProvider.ts` | 创建一种 Shape，并负责该类型 SVG 读回/写出 | `ShapeProviderRegistry.create`、`providerForSvg`、`readSvg`、`writeSvg`；创建由 `CreateCommand.execute` 调用，读写由 `SvgXmlCodec` 调用 | `BuiltinShapeProvider` 注册 rect/circle/ellipse/line/text/g；box 插件提供 `BoxShapeProvider` | 六种 Phase 1 类型仍可用；box 创建明确报 unknown type；没有 box provider 时 `<g data-kind="box">` 按普通 `g` 读回 | 重复 kind 拒绝注册；未知类型、无匹配/多匹配 provider 与坏 SVG 结构以 `DomainError` 明确失败 |
+| `Command` — `src/application/Command.ts` | 提供命令名称、参数创建、执行/撤销语义及 help 文案 | `CommandFactory.create` 委托 `CommandRegistry.create`；`HelpCommand.execute` 读取注册表附加帮助；`DocumentCommandExecutor.execute` 呈现领域错误 | `BuiltinCommandPlugin` 提供 Phase 1 命令；独立 stats、dir 插件分别注册 `stats`、`dir` | 内置命令保持可用；未加载的可选命令报 `error: unknown command: <name>`，不出现在 help | 空名/重名在注册时拒绝；参数或领域契约错误显式返回 `error:`，未注册名称不静默 fallback |
+| `TreeDecorator` — `src/application/TreeDecorator.ts` | 为单行树摘要追加一个标签 | `TreeCommand.renderShape` 调用 `TreeDecoratorRegistry.suffix` | `box-type` 追加 `(box)`；`modified-star` 比较保存快照并追加 `*` | 无 decorator 时后缀为空，Phase 1 tree 文本逐字节不变 | 重名拒绝；空标签忽略；非字符串或含换行标签报 `DomainError` |
+| `AttributeHandler` — `src/application/AttributeHandler.ts` | 为某种 Shape 上的属性提供领域修改行为 | `SetCommand.execute` 调用 `AttributeHandlerRegistry.resolve`，单次命令以 `ShapeSnapshot` 管理事务/undo/redo | box 插件的 `box-attributes` 处理 fill 和 label | 普通 Shape 继续走原有 `Shape.setAttribute` 白名单；没有 box 插件时不会获得 box 专属语义 | 多处理器命中拒绝；apply/反馈失败时恢复子树并报告处理器错误，执行失败不进入历史 |
+
+#### `dir` 的 Adapter 角色
+
+`DirCommand` 是使用端；它只依赖 application 端口 `DirectoryAccess`（`currentWorkingDirectory`、`readDirectory`）。`NodeDirectoryAdapter` 是具体 Adapter：把 Node 文件系统的 `process.cwd()` / `readdirSync` / `statSync` 结果映射为 `DirectoryEntry` 与 `DirectoryReadResult`，并将失败收敛为失败联合类型。组合根注入该 Adapter；单元测试则注入同一端口的替身。这样命令逻辑不依赖 Node API，替身和真实临时目录测试可验证相同排序与错误语义。
+
+### 架构决策记录（ADR）
+
+#### ADR-001：AttributeHandler 冲突与事务边界
+
+- **状态：** 已采纳。
+- **决策：** 多个处理器同时匹配同一 Shape/属性时拒绝，不按注册顺序隐式优先或组合。`SetCommand.execute` 在调用处理器前快照整个目标子树；处理器与自定义反馈都成功后才把命令纳入历史。失败时恢复快照，恢复失败也单独报错。
+- **结果：** box 一次 `set` 可改内部部件但仍是一个 undo/redo 单元；失败不会丢失 redo 分支，也不会回退到默认属性设置。
+
+#### ADR-002：box SVG 读回的无效结构策略
+
+- **状态：** 已采纳。
+- **决策：** 没有 box provider 时，`data-kind="box"` 按通用 `g` provider 降级；有 provider 时，若派生 rect/text 缺失、类型错误、顺序或 ID 错误，则拒绝整份文档读入，不再静默降级。全局重复 ID 始终拒绝。
+- **结果：** 降级仅代表插件未安装，不掩盖已安装插件可识别的损坏数据；`ReadCommand` 在解析成功前不替换当前会话文档。
+
+#### ADR-003：modified-star 的 dirty 判定和标签传播
+
+- **状态：** 已采纳。
+- **决策：** decorator 实例保存最近一次成功 save/read 的文档快照，以内容/结构差异决定 dirty，而不是记录“发生过命令”；undo 回到保存点时 `*` 消失。属性改动只标记目标 Shape；新增、删除或重排只标记直接父容器；顶层画布尺寸变化标记现有根 Shape。decorator 按注册顺序输出标签。
+- **结果：** 不需要修改树渲染器或在祖先行传播普通属性变化；同时注册时顺序为 `(box) *`。由于扩展点作用于 Shape，空画布标题行不加 `*`。
+
+#### ADR-004：插件 manifest 校验先于提交
+
+- **状态：** 已采纳。
+- **决策：** `activate` 只写入 `StagedPluginContext` 暂存列表。loader 比较 manifest 与实际四类注册名集合、检查插件内和跨插件重名后才提交注册表。失败插件的已创建贡献按需调用 `dispose()`；清理异常也会写入错误信息，但不阻断后续插件。options 原样传给 `activate`，配置相对路径相对配置文件解析。
+- **结果：** 错误插件不留下部分注册；后续插件继续加载。配置语法/结构错误不加载可选插件并以内置能力启动。
 
 ## VS Code 扩展实践
 
