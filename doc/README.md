@@ -124,7 +124,7 @@ TESTS ..> INFRA
 
 `src/domain/ShapeProvider.ts` 定义图形扩展契约；`ShapeProviderRegistry` 按图形 kind 注册 provider，并统一负责命令创建、SVG 读回和序列化分派。默认装配由 `src/plugins/defaultShapeProviders.ts` 注册 Phase 1 的六种图形；应用层创建命令与 XML 编解码器只依赖注册表，不再直接依赖静态 `ShapeFactory`。新 provider 可在不修改这些调用点的情况下参与创建和 SVG 往返。
 
-验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 64 项通过，`npm run typecheck` 通过。
+验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 67 项通过，`npm run typecheck` 通过。
 
 SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接受该 SVG 元素的 provider，则优先由它读回；未注册该 provider 时，继续走元素本身的常规 provider（例如 `<g data-kind="box">` 可降级为普通分组）。`GroupShape` 默认允许 ungroup、允许移除所有子项；复合插件可通过覆写 `canUngroup` 和 `isRequiredChild` 声明结构约束，核心文档操作负责执行约束并在失败时保持原结构。
 
@@ -150,7 +150,9 @@ SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接
 
 `src/application/TreeDecorator.ts` 定义逐个图形行追加标签的接口；`TreeDecoratorRegistry.suffix` 按注册顺序调用装饰器，标签间用一个空格拼接。`TreeCommand.renderShape` 只依赖该注册表追加后缀；未注册装饰器时空后缀不会改变 Phase 1 树输出。空标签被忽略，含换行或非字符串结果按契约错误报告。
 
-测试覆盖两个装饰器并存及顺序、无装饰器时既有 tree 基线、重复名称和无效标签。实际标签插件待后续接入。
+`DocumentSession` 发布 initialized/loaded/saved 生命周期事件；有保存点语义的状态型插件可在自身字段中捕获快照，避免修改树渲染器或依赖文件系统轮询。初始化事件清空保存基线，成功读入和保存事件建立基线。独立测试覆盖事件顺序和注销订阅。
+
+测试覆盖两个装饰器并存及顺序、无装饰器时既有 tree 基线、重复名称和无效标签。
 
 ### AttributeHandler 注册与事务
 
