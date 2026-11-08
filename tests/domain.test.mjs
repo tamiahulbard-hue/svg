@@ -65,6 +65,45 @@ test("groups apply move, scale, and common attributes recursively", () => {
   assert.deepEqual(outer.children, [inner]);
 });
 
+test("composite groups can protect required children and reject ungrouping", () => {
+  class CompositeShape extends GroupShape {
+    get canUngroup() {
+      return false;
+    }
+
+    isRequiredChild(shape) {
+      return shape.id === "required";
+    }
+  }
+
+  const document = new SvgDocument();
+  const parent = new GroupShape("parent");
+  const composite = new CompositeShape("composite");
+  const required = new RectShape("required", 0, 0, 10, 10);
+  const extra = new RectShape("extra", 0, 0, 5, 5);
+  const destination = new GroupShape("destination");
+  composite.addChild(required);
+  composite.addChild(extra);
+  parent.addChild(composite);
+  document.addShape(parent);
+  document.addShape(destination);
+
+  assert.throws(
+    () => document.removeShape("required"),
+    /cannot remove required child required from composite/,
+  );
+  assert.throws(
+    () => document.reparentShape("required", "destination"),
+    /cannot remove required child required from composite/,
+  );
+  assert.throws(
+    () => document.ungroupShape("composite"),
+    /cannot ungroup composite shape: composite/,
+  );
+  assert.deepEqual(composite.children, [required, extra]);
+  assert.equal(required.parent, composite);
+});
+
 test("group child ordering uses final indices and rejects invalid moves without mutation", () => {
   const group = new GroupShape("group");
   const shapes = ["a", "b", "c"].map((id) => new RectShape(id, 0, 0, 1, 1));

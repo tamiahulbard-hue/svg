@@ -126,6 +126,8 @@ TESTS ..> INFRA
 
 验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 53 项通过，`npm run typecheck` 通过。
 
+SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接受该 SVG 元素的 provider，则优先由它读回；未注册该 provider 时，继续走元素本身的常规 provider（例如 `<g data-kind="box">` 可降级为普通分组）。`GroupShape` 默认允许 ungroup、允许移除所有子项；复合插件可通过覆写 `canUngroup` 和 `isRequiredChild` 声明结构约束，核心文档操作负责执行约束并在失败时保持原结构。
+
 ### Command 注册
 
 `src/application/Command.ts` 中的 `Command` 是命令定义扩展点；实现提供名称、help 文案和参数到可执行命令的创建方法。`CommandRegistry` 统一负责名称注册、重复名拒绝、分发及插件 help 列表。`CommandFactory.create` 只解析名称并委托注册表。Phase 1 命令作为内置 command 插件由 `src/plugins/BuiltinCommandPlugin.ts` 注册，原参数语义保留在插件目录下的 `BuiltinCommandCatalog`；主组合根显式装配它们。可选 command 插件可独立注册，未注册名称仍返回 unknown command。

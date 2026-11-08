@@ -25,6 +25,10 @@ export class GroupShape extends Shape {
     return this.transformValue;
   }
 
+  get canUngroup(): boolean {
+    return true;
+  }
+
   get additionalAttributes(): Readonly<Record<string, ShapeAttributeValue>> {
     return this.transformValue === undefined ? {} : { transform: this.transformValue };
   }
@@ -75,9 +79,16 @@ export class GroupShape extends Shape {
     if (index < 0) {
       throw new DomainError(`shape ${child.id} is not a child of ${this.id}`);
     }
+    if (this.isRequiredChild(child)) {
+      throw new DomainError(`cannot remove required child ${child.id} from ${this.id}`);
+    }
     this.childrenValue.splice(index, 1);
     child[setShapeParent](null);
     return index;
+  }
+
+  protected isRequiredChild(_child: Shape): boolean {
+    return false;
   }
 
   contains(shape: Shape): boolean {

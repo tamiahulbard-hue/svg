@@ -80,3 +80,36 @@ test("a separately registered shape provider participates in SVG read and write"
   assert.equal(parsed.document.requireShape("d1").kind, "diamond");
   assert.match(codec.serialize(parsed.document), /<diamond id="d1"\/>/);
 });
+
+test("an explicit data-kind provider takes precedence and falls back when absent", () => {
+  const registry = createDefaultShapeProviderRegistry();
+  const boxProvider = {
+    kind: "box",
+    acceptsChildren: true,
+    create() {
+      throw new Error("not used");
+    },
+    matchesSvg(element) {
+      return element.name === "g" && element.attributes["data-kind"] === "box";
+    },
+    readSvg() {
+      throw new Error("not used");
+    },
+    writeSvg() {
+      throw new Error("not used");
+    },
+  };
+  const element = {
+    name: "g",
+    attributes: { "data-kind": "box" },
+    text: "",
+    children: [],
+  };
+  registry.register(boxProvider);
+
+  assert.equal(registry.providerForSvg(element), boxProvider);
+  assert.equal(
+    createDefaultShapeProviderRegistry().providerForSvg(element).kind,
+    "g",
+  );
+});

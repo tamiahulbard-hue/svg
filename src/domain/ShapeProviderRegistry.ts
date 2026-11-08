@@ -26,6 +26,14 @@ export class ShapeProviderRegistry {
   }
 
   providerForSvg(element: SvgShapeElement): ShapeProvider {
+    const declaredKind = element.attributes["data-kind"];
+    if (declaredKind !== undefined) {
+      const declaredProvider = this.providers.get(declaredKind);
+      if (declaredProvider?.matchesSvg(element) === true) {
+        return declaredProvider;
+      }
+    }
+
     const matches = [...this.providers.values()].filter((provider) => provider.matchesSvg(element));
     if (matches.length === 0) {
       throw new DomainError(`unsupported SVG element: <${element.name}>`);

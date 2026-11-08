@@ -113,6 +113,9 @@ export class SvgDocument {
     if (!(group instanceof GroupShape)) {
       throw new DomainError(`not a container: ${id}`);
     }
+    if (!group.canUngroup) {
+      throw new DomainError(`cannot ungroup composite shape: ${id}`);
+    }
 
     const parent = group.parent;
     if (!(parent instanceof GroupShape)) {
