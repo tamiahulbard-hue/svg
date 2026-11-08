@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { DocumentCommandExecutor } from "../dist/application/DocumentCommandExecutor.js";
 import { DocumentSession } from "../dist/application/DocumentSession.js";
 import { CommandParser } from "../dist/cli/CommandParser.js";
+import { createRuntime } from "./runtime.mjs";
 
 const parser = new CommandParser();
 const run = (executor, input) => executor.execute(parser.parse(input));
 
 test("tree displays geometry inline and draws nested branches", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init 800 600");
   run(executor, "create g flow");
   run(executor, "create rect start 120 100 160 60 #4a90d9 in flow");
@@ -41,7 +41,7 @@ test("tree displays geometry inline and draws nested branches", () => {
 
 test("show prints parent and shape attributes, including text content", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create g group");
   run(executor, 'create text caption 10 20 "hello world" in group');
@@ -60,7 +60,7 @@ test("show prints parent and shape attributes, including text content", () => {
 
 test("help lists the documented commands and display requests do not touch history", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create circle c 1 2 3");
   assert.match(run(executor, "help"), /create ellipse <id> <cx> <cy> <rx> <ry>/);

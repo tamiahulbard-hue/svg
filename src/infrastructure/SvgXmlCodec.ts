@@ -1,9 +1,9 @@
 import { SaxesParser } from "saxes";
 import { DomainError } from "../domain/DomainError.js";
 import { GroupShape } from "../domain/GroupShape.js";
-import { ShapeFactory } from "../domain/ShapeFactory.js";
-import type { Shape, ShapeKind } from "../domain/Shape.js";
+import type { Shape } from "../domain/Shape.js";
 import { SvgDocument } from "../domain/SvgDocument.js";
+import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
@@ -22,6 +22,8 @@ type ParsedDocument = {
 };
 
 export class SvgXmlCodec {
+  constructor(private readonly shapeProviders: ShapeProviderRegistry) {}
+
   parse(source: string): ParsedDocument {
     const root = this.parseXml(source);
     if (root.name !== "svg" || (root.namespace !== "" && root.namespace !== SVG_NAMESPACE)) {
@@ -176,9 +178,6 @@ export class SvgXmlCodec {
     if (node.namespace !== "" && node.namespace !== SVG_NAMESPACE) {
       throw new DomainError(`unsupported SVG namespace on <${node.name}>`);
     }
-    if (!["rect", "circle", "ellipse", "line", "text", "g"].includes(node.name)) {
-      throw new DomainError(`unsupported SVG element: <${node.name}>`);
-    }
     if (node.text.trim().length > 0 && node.name !== "text") {
       throw new DomainError(`unexpected text content in <${node.name}>`);
     }
@@ -187,7 +186,18 @@ export class SvgXmlCodec {
     }
 
     const id = node.attributes.id ?? this.assignId(node.name, reservedIds, counters, warnings);
-    const shape = this.createElement(node, id);
+    const element = {
+      name: node.name,
+      attributes: node.attributes,
+      text: node.text,
+      children: [],
+    };
+    const provider = this.shapeProviders.providerForSvg(element);
+    const children = provider.acceptsChildren
+      ? node.children.map((child) =>
+        this.createShape(child, reservedIds, counters, warnings))
+      : [];
+    const shape = provider.readSvg(id, { ...element, children });
     if (shape instanceof GroupShape && node.attributes.transform !== undefined) {
       shape.setTransform(node.attributes.transform);
     }
@@ -202,48 +212,7 @@ export class SvgXmlCodec {
       shape.setAttribute("stroke-width", this.number(strokeWidth, "stroke-width"));
     }
 
-    if (shape instanceof GroupShape) {
-      for (const child of node.children) {
-        shape.addChild(this.createShape(child, reservedIds, counters, warnings));
-      }
-    }
     return shape;
-  }
-
-  private createElement(node: SvgNode, id: string): Shape {
-    const attributes = node.attributes;
-    const parameters: Record<ShapeKind, string[]> = {
-      rect: [
-        this.attribute(attributes, "x", "0"),
-        this.attribute(attributes, "y", "0"),
-        this.attribute(attributes, "width", "0"),
-        this.attribute(attributes, "height", "0"),
-      ],
-      circle: [
-        this.attribute(attributes, "cx", "0"),
-        this.attribute(attributes, "cy", "0"),
-        this.attribute(attributes, "r", "0"),
-      ],
-      ellipse: [
-        this.attribute(attributes, "cx", "0"),
-        this.attribute(attributes, "cy", "0"),
-        this.attribute(attributes, "rx", "0"),
-        this.attribute(attributes, "ry", "0"),
-      ],
-      line: [
-        this.attribute(attributes, "x1", "0"),
-        this.attribute(attributes, "y1", "0"),
-        this.attribute(attributes, "x2", "0"),
-        this.attribute(attributes, "y2", "0"),
-      ],
-      text: [
-        this.attribute(attributes, "x", "0"),
-        this.attribute(attributes, "y", "0"),
-        node.text,
-      ],
-      g: [],
-    };
-    return ShapeFactory.create(node.name, id, parameters[node.name as ShapeKind]);
   }
 
   private assignId(
@@ -264,10 +233,6 @@ export class SvgXmlCodec {
     return id;
   }
 
-  private attribute(attributes: Record<string, string>, name: string, fallback: string): string {
-    return attributes[name] ?? fallback;
-  }
-
   private number(value: string, name: string): number {
     if (!/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(value)) {
       throw new DomainError(`invalid SVG ${name}: ${value}`);
@@ -282,29 +247,27 @@ export class SvgXmlCodec {
   private serializeShape(shape: Shape, depth: number, lines: string[]): void {
     const indentation = "  ".repeat(depth);
     const attributes = [`id="${this.escapeAttribute(shape.id)}"`];
-    for (const [name, value] of Object.entries(shape.attributes)) {
-      if (name === "text") {
-        continue;
-      }
-      attributes.push(`${name}="${this.escapeAttribute(String(value))}"`);
+    const encoding = this.shapeProviders.writeSvg(shape);
+    for (const [name, value] of Object.entries(encoding.attributes)) {
+      attributes.push(`${name}="${this.escapeAttribute(value)}"`);
     }
-    const start = `${indentation}<${shape.kind} ${attributes.join(" ")}`;
+    const start = `${indentation}<${encoding.name} ${attributes.join(" ")}`;
 
-    if (shape instanceof GroupShape) {
-      if (shape.children.length === 0) {
+    if (encoding.children !== undefined) {
+      if (encoding.children.length === 0) {
         lines.push(`${start}/>`);
         return;
       }
       lines.push(`${start}>`);
-      for (const child of shape.children) {
+      for (const child of encoding.children) {
         this.serializeShape(child, depth + 1, lines);
       }
-      lines.push(`${indentation}</g>`);
+      lines.push(`${indentation}</${encoding.name}>`);
       return;
     }
 
-    if (shape.kind === "text") {
-      lines.push(`${start}>${this.escapeText(shape.attributes.text as string)}</text>`);
+    if (encoding.text !== undefined) {
+      lines.push(`${start}>${this.escapeText(encoding.text)}</${encoding.name}>`);
     } else {
       lines.push(`${start}/>`);
     }

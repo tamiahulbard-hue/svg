@@ -21,12 +21,14 @@ import { SaveCommand } from "./commands/SaveCommand.js";
 import { TreeCommand } from "./commands/TreeCommand.js";
 import { ShowCommand } from "./commands/ShowCommand.js";
 import { HelpCommand } from "./commands/HelpCommand.js";
+import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 
 export class CommandFactory {
   constructor(
     private readonly session: DocumentSession,
-    private readonly history = new CommandHistory(),
-    private readonly filePort?: SvgFilePort,
+    private readonly history: CommandHistory,
+    private readonly filePort: SvgFilePort | undefined,
+    private readonly shapeProviders: ShapeProviderRegistry,
   ) {}
 
   create(tokens: readonly string[]): Command {
@@ -146,7 +148,14 @@ export class CommandFactory {
     }
     const type = this.required(arguments_, 0, "type");
     const id = this.required(arguments_, 1, "id");
-    return new CreateCommand(this.session, type, id, arguments_.slice(2, end), parentId);
+    return new CreateCommand(
+      this.session,
+      type,
+      id,
+      arguments_.slice(2, end),
+      parentId,
+      this.shapeProviders,
+    );
   }
 
   private setShapeAttribute(arguments_: readonly string[]): Command {

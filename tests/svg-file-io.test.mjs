@@ -4,12 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { DocumentCommandExecutor } from "../dist/application/DocumentCommandExecutor.js";
 import { DocumentSession } from "../dist/application/DocumentSession.js";
 import { CommandParser } from "../dist/cli/CommandParser.js";
 import { GroupShape } from "../dist/domain/GroupShape.js";
-import { SvgFileAdapter } from "../dist/infrastructure/SvgFileAdapter.js";
 import { SvgXmlCodec } from "../dist/infrastructure/SvgXmlCodec.js";
+import {
+  createDefaultShapeProviderRegistry,
+  createFileAdapter,
+  createRuntime,
+} from "./runtime.mjs";
 
 const parser = new CommandParser();
 const run = (executor, input) => executor.execute(parser.parse(input));
@@ -26,8 +29,8 @@ test("SVG write/read round trip preserves canvas, styles, text, nesting, and tra
   withTempDirectory((directory) => {
     const path = join(directory, "diagram with spaces.svg");
     const session = new DocumentSession();
-    const adapter = new SvgFileAdapter();
-    const executor = new DocumentCommandExecutor(session, adapter);
+    const adapter = createFileAdapter();
+    const executor = createRuntime(session, adapter).executor;
     run(executor, "init 400 200");
     run(executor, "create g flow");
     run(executor, "create rect start 10 20 100 50 #abc in flow");
@@ -41,7 +44,7 @@ test("SVG write/read round trip preserves canvas, styles, text, nesting, and tra
     assert.match(serialized, /stroke-width="2"/);
 
     const newSession = new DocumentSession();
-    const newExecutor = new DocumentCommandExecutor(newSession, adapter);
+    const newExecutor = createRuntime(newSession, adapter).executor;
     assert.match(run(newExecutor, `read "${path}"`), /^read .*diagram with spaces\.svg \(3 elements\)$/);
     assert.deepEqual(newSession.document.allShapes().map((shape) => shape.id), [
       "flow",
@@ -64,7 +67,7 @@ test("SVG write/read round trip preserves canvas, styles, text, nesting, and tra
 });
 
 test("reader assigns unique IDs and reports each missing ID", () => {
-  const loaded = new SvgXmlCodec().parse(`
+  const loaded = new SvgXmlCodec(createDefaultShapeProviderRegistry()).parse(`
     <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
       <rect x="0" y="0" width="10" height="20"/>
       <rect id="rect1" x="1" y="2" width="3" height="4"/>
@@ -90,7 +93,7 @@ test("read errors do not replace the current document or unblock history", () =>
     const badPath = join(directory, "invalid.svg");
     writeFileSync(badPath, "<svg><g></svg>", "utf8");
     const session = new DocumentSession();
-    const executor = new DocumentCommandExecutor(session, new SvgFileAdapter());
+    const executor = createRuntime(session).executor;
     run(executor, "init");
     run(executor, "create rect original 0 0 1 1");
     const previous = session.document;
@@ -103,9 +106,9 @@ test("read errors do not replace the current document or unblock history", () =>
 
 test("missing files, unsupported XML features, and unwritable paths report errors", () => {
   withTempDirectory((directory) => {
-    const adapter = new SvgFileAdapter();
+    const adapter = createFileAdapter();
     const session = new DocumentSession();
-    const executor = new DocumentCommandExecutor(session, adapter);
+    const executor = createRuntime(session, adapter).executor;
     run(executor, "init");
 
     const missingPath = join(directory, "missing.svg");
@@ -139,7 +142,7 @@ test("read assigns the default save path and save without a path reuses it", () 
       "utf8",
     );
     const session = new DocumentSession();
-    const executor = new DocumentCommandExecutor(session, new SvgFileAdapter());
+    const executor = createRuntime(session).executor;
     assert.match(run(executor, `read "${path}"`), /read .*in\.svg \(1 elements\)/);
     assert.match(run(executor, "save"), new RegExp(`saved to .*in\\.svg \\(1 elements\\)`));
     assert.equal(run(executor, "undo"), "error: undo not allowed after io command");

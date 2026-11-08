@@ -4,10 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { DocumentCommandExecutor } from "../dist/application/DocumentCommandExecutor.js";
 import { DocumentSession } from "../dist/application/DocumentSession.js";
 import { CommandParser } from "../dist/cli/CommandParser.js";
-import { SvgFileAdapter } from "../dist/infrastructure/SvgFileAdapter.js";
+import { createRuntime } from "./runtime.mjs";
 
 const parser = new CommandParser();
 const run = (executor, input) => executor.execute(parser.parse(input));
@@ -23,7 +22,7 @@ const withTempDirectory = (action) => {
 test("phase sample session supports edit, undo/redo, grouping, IO, and missing IDs", () => {
   withTempDirectory((directory) => {
     const session = new DocumentSession();
-    const executor = new DocumentCommandExecutor(session, new SvgFileAdapter());
+    const executor = createRuntime(session).executor;
     run(executor, "init 800 600");
     run(executor, "create rect bg 0 0 800 600 #ffffff");
     run(executor, 'create text title 20 40 "My Diagram"');
@@ -85,7 +84,7 @@ test("phase sample session supports edit, undo/redo, grouping, IO, and missing I
 test("two-node flowchart case constructs nested nodes and saves eight SVG elements", () => {
   withTempDirectory((directory) => {
     const session = new DocumentSession();
-    const executor = new DocumentCommandExecutor(session, new SvgFileAdapter());
+    const executor = createRuntime(session).executor;
     run(executor, "init 800 600");
     run(executor, "create g flowchart");
     run(executor, "create g node1 in flowchart");

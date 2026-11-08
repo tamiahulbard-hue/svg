@@ -2,15 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CommandParser } from "../dist/cli/CommandParser.js";
-import { CommandFactory } from "../dist/application/CommandFactory.js";
-import { DocumentCommandExecutor } from "../dist/application/DocumentCommandExecutor.js";
 import { DocumentSession } from "../dist/application/DocumentSession.js";
+import { createCommandFactory, createRuntime } from "./runtime.mjs";
 
 const parser = new CommandParser();
 const execute = (executor, input) => executor.execute(parser.parse(input));
 
 test("init and canvas commands manage the current document", () => {
-  const executor = new DocumentCommandExecutor();
+  const executor = createRuntime().executor;
 
   assert.equal(execute(executor, "canvas"), "error: no document. use 'init' or 'read' first");
   assert.equal(execute(executor, "init"), "canvas 800x600 created");
@@ -22,9 +21,9 @@ test("init and canvas commands manage the current document", () => {
 });
 
 test("invalid document commands return errors and preserve document state", () => {
-  const executor = new DocumentCommandExecutor();
+  const executor = createRuntime().executor;
   const session = new DocumentSession();
-  const commands = new DocumentCommandExecutor(session);
+  const commands = createRuntime(session).executor;
 
   assert.equal(execute(commands, "init 500 300"), "canvas 500x300 created");
   assert.match(execute(commands, "init 0 300"), /^error: canvas width must be a positive finite number$/);
@@ -37,7 +36,7 @@ test("invalid document commands return errors and preserve document state", () =
 test("canvas size queries are display-only while changes are history barriers", () => {
   const session = new DocumentSession();
   session.initialize();
-  const factory = new CommandFactory(session);
+  const factory = createCommandFactory(session);
 
   assert.equal(factory.create(parser.parse("canvas")).historyEffect, "skip");
   assert.equal(factory.create(parser.parse("canvas 400 300")).historyEffect, "barrier");

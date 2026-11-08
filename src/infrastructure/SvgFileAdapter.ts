@@ -5,7 +5,7 @@ import type { SvgDocument } from "../domain/SvgDocument.js";
 import { SvgXmlCodec } from "./SvgXmlCodec.js";
 
 export class SvgFileAdapter implements SvgFilePort {
-  constructor(private readonly codec = new SvgXmlCodec()) {}
+  constructor(private readonly codec: SvgXmlCodec) {}
 
   read(path: string): LoadedSvgDocument {
     let source: string;

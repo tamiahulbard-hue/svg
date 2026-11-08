@@ -1,6 +1,6 @@
 import { DomainError } from "./DomainError.js";
 
-export type ShapeKind = "rect" | "circle" | "ellipse" | "line" | "text" | "g";
+export type ShapeKind = string;
 export type ShapeAttributeValue = string | number;
 export const setShapeParent = Symbol("setShapeParent");
 

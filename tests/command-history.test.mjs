@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { DocumentCommandExecutor } from "../dist/application/DocumentCommandExecutor.js";
 import { DocumentSession } from "../dist/application/DocumentSession.js";
 import { CommandParser } from "../dist/cli/CommandParser.js";
+import { createRuntime } from "./runtime.mjs";
 
 const parser = new CommandParser();
 const run = (executor, input) => executor.execute(parser.parse(input));
 
 test("successful edits undo and redo, and redo survives failed edits", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   assert.equal(run(executor, "create rect r 1 2 3 4"), "rect#r created");
   assert.equal(run(executor, "undo"), "rect#r creation undone");
@@ -26,7 +26,7 @@ test("successful edits undo and redo, and redo survives failed edits", () => {
 
 test("a new successful edit after undo clears redo while display commands do not", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create rect a 0 0 1 1");
   run(executor, "create rect b 0 0 1 1");
@@ -40,7 +40,7 @@ test("a new successful edit after undo clears redo while display commands do not
 
 test("document commands create a history barrier until the next edit", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create rect first 0 0 1 1");
   run(executor, "init 200 100");
@@ -55,7 +55,7 @@ test("document commands create a history barrier until the next edit", () => {
 
 test("grouping is a single undo unit and redo restores the composite", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create rect a 0 0 1 1");
   run(executor, "create circle b 1 1 1");
@@ -70,7 +70,7 @@ test("grouping is a single undo unit and redo restores the composite", () => {
 
 test("move, scale, set, delete, reparent, and z-order each undo as one edit", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create g left");
   run(executor, "create g right");

@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CommandFactory } from "../dist/application/CommandFactory.js";
-import { DocumentCommandExecutor } from "../dist/application/DocumentCommandExecutor.js";
 import { DocumentSession } from "../dist/application/DocumentSession.js";
 import { CommandParser } from "../dist/cli/CommandParser.js";
 import { GroupShape } from "../dist/domain/GroupShape.js";
 import { SvgDocument } from "../dist/domain/SvgDocument.js";
+import { createCommandFactory, createRuntime } from "./runtime.mjs";
 
 const parser = new CommandParser();
 const tokens = (input) => parser.parse(input);
@@ -36,7 +35,7 @@ test("parser preserves quoted whitespace and handles quoted escapes", () => {
 
 test("create supports six built-in shapes and optional container placement", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init 400 200");
   assert.equal(run(executor, "create g node"), "g#node created");
   assert.equal(
@@ -62,7 +61,7 @@ test("create supports six built-in shapes and optional container placement", () 
 
 test("edit commands change shape geometry and attributes and reject invalid commands atomically", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create g node");
   run(executor, "create rect rect1 10 20 30 40 #fff in node");
@@ -94,7 +93,7 @@ test("edit commands change shape geometry and attributes and reject invalid comm
 
 test("failed recursive movement restores every previously changed child", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create g group");
   run(executor, "create rect safe 0 0 1 1 in group");
@@ -107,7 +106,7 @@ test("failed recursive movement restores every previously changed child", () => 
 
 test("group, ungroup, addto, front, back, and delete preserve hierarchy and order", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create g parent");
   run(executor, "create rect a 0 0 1 1 in parent");
@@ -132,7 +131,7 @@ test("group, ungroup, addto, front, back, and delete preserve hierarchy and orde
 
 test("composite ancestor selection and invalid destinations leave the tree unchanged", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   run(executor, "create g outer");
   run(executor, "create g inner in outer");
@@ -149,7 +148,7 @@ test("composite ancestor selection and invalid destinations leave the tree uncha
 
 test("group preserves original sibling order even when IDs are passed out of order", () => {
   const session = new DocumentSession();
-  const executor = new DocumentCommandExecutor(session);
+  const executor = createRuntime(session).executor;
   run(executor, "init");
   for (const id of ["a", "b", "c", "d"]) {
     run(executor, `create rect ${id} 0 0 1 1`);
@@ -167,7 +166,7 @@ test("group preserves original sibling order even when IDs are passed out of ord
 
 test("command objects expose undo for structural edits", () => {
   const session = new DocumentSession();
-  const factory = new CommandFactory(session);
+  const factory = createCommandFactory(session);
   session.initialize();
   const document = session.document;
   const createGroup = factory.create(tokens("create g group"));

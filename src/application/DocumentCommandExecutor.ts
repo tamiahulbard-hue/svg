@@ -4,17 +4,19 @@ import { CommandHistory } from "./CommandHistory.js";
 import { DocumentSession } from "./DocumentSession.js";
 import type { CommandExecutor } from "./CommandExecutor.js";
 import type { SvgFilePort } from "./SvgFilePort.js";
+import type { ShapeProviderRegistry } from "../domain/ShapeProviderRegistry.js";
 
 export class DocumentCommandExecutor implements CommandExecutor {
   private readonly commandFactory: CommandFactory;
   private readonly history: CommandHistory;
 
   constructor(
-    private readonly session = new DocumentSession(),
-    filePort?: SvgFilePort,
+    private readonly session: DocumentSession,
+    filePort: SvgFilePort | undefined,
+    shapeProviders: ShapeProviderRegistry,
   ) {
     this.history = new CommandHistory();
-    this.commandFactory = new CommandFactory(session, this.history, filePort);
+    this.commandFactory = new CommandFactory(session, this.history, filePort, shapeProviders);
   }
 
   execute(tokens: readonly string[]): string {

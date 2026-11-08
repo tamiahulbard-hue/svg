@@ -117,3 +117,11 @@ TESTS ..> INFRA
 - SVG 集成测试：嵌套元素读写往返、缺失 id 自动补齐与警告、非法/不可访问文件报错。
 - 端到端验收测试：自动回放阶段说明中的完整编辑/撤销/重做/分组/读写会话和两节点流程图案例，并检查结果、错误反馈、文档状态及 SVG 输出元素数量。
 - 一致性检查：对照本架构图和依赖规则审查实际目录及生产导入关系；确认未发现跨层依赖偏差。
+
+## Phase 2 实施记录（进行中）
+
+### ShapeProvider 注册
+
+`src/domain/ShapeProvider.ts` 定义图形扩展契约；`ShapeProviderRegistry` 按图形 kind 注册 provider，并统一负责命令创建、SVG 读回和序列化分派。默认装配由 `src/plugins/defaultShapeProviders.ts` 注册 Phase 1 的六种图形；应用层创建命令与 XML 编解码器只依赖注册表，不再直接依赖静态 `ShapeFactory`。新 provider 可在不修改这些调用点的情况下参与创建和 SVG 往返。
+
+验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前 `npm test` 为 38 项通过，`npm run typecheck` 通过。该记录只描述已完成的 ShapeProvider 部分；其他扩展点、动态装载、`box` 和树标签仍待后续阶段实现。

@@ -1,5 +1,4 @@
-import { DomainError } from "../../domain/DomainError.js";
-import { ShapeFactory } from "../../domain/ShapeFactory.js";
+import type { ShapeProviderRegistry } from "../../domain/ShapeProviderRegistry.js";
 import type { Shape } from "../../domain/Shape.js";
 import { DocumentSession } from "../DocumentSession.js";
 import type { Command } from "../Command.js";
@@ -13,9 +12,10 @@ export class CreateCommand implements Command {
     private readonly type: string,
     private readonly id: string,
     private readonly parameters: readonly string[],
-    private readonly parentId?: string,
+    private readonly parentId: string | undefined,
+    shapeProviders: ShapeProviderRegistry,
   ) {
-    this.shape = ShapeFactory.create(type, id, parameters);
+    this.shape = shapeProviders.create(type, id, parameters);
   }
 
   execute(): string {
