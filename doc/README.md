@@ -124,7 +124,7 @@ TESTS ..> INFRA
 
 `src/domain/ShapeProvider.ts` 定义图形扩展契约；`ShapeProviderRegistry` 按图形 kind 注册 provider，并统一负责命令创建、SVG 读回和序列化分派。默认装配由 `src/plugins/defaultShapeProviders.ts` 注册 Phase 1 的六种图形；应用层创建命令与 XML 编解码器只依赖注册表，不再直接依赖静态 `ShapeFactory`。新 provider 可在不修改这些调用点的情况下参与创建和 SVG 往返。
 
-验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 63 项通过，`npm run typecheck` 通过。
+验证包括默认六种类型注册、重复注册拒绝、未注册类型错误，以及独立 `diamond` provider 的 XML 读写；当前全量 `npm test` 为 64 项通过，`npm run typecheck` 通过。
 
 SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接受该 SVG 元素的 provider，则优先由它读回；未注册该 provider 时，继续走元素本身的常规 provider（例如 `<g data-kind="box">` 可降级为普通分组）。`GroupShape` 默认允许 ungroup、允许移除所有子项；复合插件可通过覆写 `canUngroup` 和 `isRequiredChild` 声明结构约束，核心文档操作负责执行约束并在失败时保持原结构。
 
@@ -137,6 +137,8 @@ SVG `data-kind` 是显式的 provider 判别标记：若注册了同 kind 且接
 序列化使用 `<g id="…" data-kind="box">`。ADR：启用插件时只接受开头依次为派生 ID 矩形与文字的完整结构；缺失、错序、类型或 ID 不符一律拒绝整份读入，不生成半成品，也不静默降级。全局重复 ID 仍由 XML/文档唯一性校验拒绝。必需部件不可删除或移走，box 不可 ungroup；嵌套 box 是允许的额外子项。测试覆盖创建摘要、嵌套、ID 冲突原子性、保护约束、插件启用 round-trip、未启用降级及坏数据读入不替换当前文档。
 
 `BoxAttributeHandler`（注册名 `box-attributes`）处理 box 的 `fill` 与 `label`：分别修改内部矩形填充和内部文本。一次 `set` 通过 `SetCommand` 子树快照成为单个 undo/redo 单元，并输出插件专属反馈；其余属性继续使用原有规则。测试覆盖属性目标、反馈、撤销/重做及普通图形回退行为。
+
+`BoxTypeDecorator` 为 kind `box` 的容器追加 `(box)`，只匹配图形类型，不访问 dirty 状态。默认组合根注册它；与其他标签组合时采用 TreeDecorator 注册顺序。
 
 ### Command 注册
 
